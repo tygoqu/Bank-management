@@ -1,12 +1,2065 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Банкирын Замнал</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Bank Quest – Pixel Edition</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:none;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Press Start 2P',monospace;}
+#c{display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
+
+/* ── PIXEL UI OVERLAY ── */
+#ui{position:fixed;inset:0;pointer-events:none;z-index:10;}
+
+/* HUD */
+#hud{
+  position:fixed;top:0;left:0;right:0;
+  background:rgba(0,0,0,0.85);
+  border-bottom:2px solid #FFD700;
+  padding:6px 10px;
+  display:none;align-items:center;gap:8px;
+  flex-wrap:wrap;
+}
+.hud-chip{
+  background:#0a0a1a;border:2px solid #333;
+  padding:4px 8px;font-size:8px;color:#aaa;
+  display:flex;align-items:center;gap:5px;
+  image-rendering:pixelated;
+}
+.hud-chip .v{color:#FFD700;}
+#hud-lvbadge{margin-left:auto;background:#0a0a1a;border:2px solid #FFD700;padding:4px 8px;font-size:8px;color:#FFD700;}
+
+/* DIALOG BOX */
+#dlg{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#0a0a1a;
+  border-top:3px solid #FFD700;
+  border-left:none;border-right:none;
+  padding:0;
+  transform:translateY(100%);
+  transition:transform 0.2s steps(4);
+  z-index:50;pointer-events:all;
+  max-height:52vh;display:flex;flex-direction:column;
+}
+#dlg.open{transform:translateY(0);}
+#dlg-inner{display:flex;gap:10px;padding:12px 12px 8px;align-items:flex-start;border-bottom:2px solid #222;}
+#dlg-face{
+  width:48px;height:48px;flex-shrink:0;
+  border:2px solid #FFD700;background:#111;
+  image-rendering:pixelated;
+}
+#dlg-name{font-size:7px;color:#FFD700;margin-bottom:6px;letter-spacing:1px;}
+#dlg-text{font-size:8px;color:#e0e0e0;line-height:1.8;flex:1;}
+#dlg-cont{font-size:7px;color:#888;padding:6px 12px;text-align:right;animation:blink 1s steps(1) infinite;}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+#dlg-choices{display:flex;flex-direction:column;gap:0;overflow-y:auto;}
+.dlg-choice{
+  background:#0a0a1a;border:none;border-top:1px solid #222;
+  padding:10px 14px;color:#ccc;font-family:'Press Start 2P',monospace;
+  font-size:8px;text-align:left;cursor:pointer;
+  display:flex;align-items:center;gap:8px;line-height:1.6;
+  transition:background 0.05s;
+}
+.dlg-choice:active,.dlg-choice:hover{background:#1a1a2e;color:#FFD700;}
+.dlg-choice.ok{color:#50fa7b;}
+.dlg-choice.ng{color:#ff5555;}
+
+/* CONTROLS */
+#ctrl{
+  position:fixed;bottom:0;left:0;right:0;
+  display:none;justify-content:space-between;align-items:flex-end;
+  padding:0 16px 20px;pointer-events:all;z-index:40;
+}
+.dpad{display:grid;grid-template-columns:48px 48px;gap:5px;}
+.dpb{
+  width:48px;height:48px;
+  background:rgba(255,255,255,0.08);
+  border:2px solid rgba(255,255,255,0.2);
+  border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;cursor:pointer;user-select:none;
+  transition:background 0.05s;
+  -webkit-appearance:none;
+}
+.dpb:active,.dpb.on{background:rgba(255,255,255,0.25);border-color:rgba(255,255,255,0.6);}
+.abtn{
+  width:54px;height:54px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;cursor:pointer;user-select:none;
+  -webkit-appearance:none;font-family:'Press Start 2P',monospace;
+  font-size:10px;font-weight:bold;
+  transition:transform 0.05s;
+}
+.abtn:active{transform:scale(0.9);}
+#abtn-a{background:rgba(255,215,0,0.2);border:2px solid #FFD700;color:#FFD700;}
+#abtn-b{background:rgba(100,149,237,0.2);border:2px solid #6495ED;color:#6495ED;font-size:9px;}
+
+/* MINIGAME SHEET */
+#mg-sheet{
+  position:fixed;inset:0;z-index:60;
+  background:#050510;
+  border-top:3px solid #6495ED;
+  overflow-y:auto;
+  transform:translateY(100%);
+  transition:transform 0.25s steps(5);
+  pointer-events:all;
+}
+#mg-sheet.open{transform:translateY(0);}
+#mg-hdr{
+  position:sticky;top:0;
+  background:#050510;border-bottom:2px solid #333;
+  padding:10px 12px;display:flex;align-items:center;gap:8px;
+  z-index:2;
+}
+#mg-title{font-size:9px;color:#FFD700;flex:1;}
+#mg-sub{font-size:7px;color:#888;margin-top:3px;}
+#mg-close{
+  background:#0a0a1a;border:2px solid #555;
+  color:#aaa;font-family:'Press Start 2P',monospace;
+  font-size:8px;padding:6px 10px;cursor:pointer;
+}
+#mg-close:active{background:#222;}
+#mg-body{padding:14px;}
+
+/* MG UI COMPONENTS */
+.px-label{font-size:7px;color:#6495ED;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;display:block;}
+.px-card{background:#0d0d1a;border:2px solid #222;padding:12px;margin-bottom:10px;}
+.px-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a1a1a;font-size:8px;color:#aaa;}
+.px-row:last-child{border:none;}
+.px-row.ttl{color:#FFD700;font-size:9px;border-top:1px solid #333;padding-top:8px;}
+.px-input{
+  width:100%;background:#080812;border:2px solid #333;
+  color:#e0e0e0;font-family:'Press Start 2P',monospace;
+  font-size:8px;padding:10px;
+}
+.px-input:focus{outline:none;border-color:#6495ED;}
+.px-input::placeholder{color:#333;}
+.px-select{
+  width:100%;background:#080812;border:2px solid #333;
+  color:#e0e0e0;font-family:'Press Start 2P',monospace;
+  font-size:7px;padding:8px;-webkit-appearance:none;
+}
+.px-btn{
+  width:100%;background:#0d1a3d;border:2px solid #6495ED;
+  color:#6495ED;font-family:'Press Start 2P',monospace;
+  font-size:8px;padding:12px;cursor:pointer;margin-top:10px;
+  text-transform:uppercase;letter-spacing:1px;
+}
+.px-btn:active{background:#1a2a5a;}
+.px-btn.gold{background:#1a1200;border-color:#FFD700;color:#FFD700;}
+.px-btn.gold:active{background:#2a2000;}
+.px-btn.grn{background:#001a08;border-color:#50fa7b;color:#50fa7b;}
+.px-result{padding:12px;margin-top:8px;font-size:8px;line-height:1.8;}
+.px-result.ok{background:#001a08;border:2px solid #50fa7b;color:#50fa7b;}
+.px-result.ng{background:#1a0000;border:2px solid #ff5555;color:#ff5555;}
+.px-info{background:#050518;border:2px solid #2a2a4a;padding:12px;margin-top:8px;font-size:7px;color:#8888cc;line-height:1.8;}
+.px-info b{color:#6495ED;display:block;margin-bottom:5px;font-size:7px;}
+.badge{display:inline-block;padding:2px 6px;font-size:7px;border:1px solid;}
+.badge.g{border-color:#50fa7b;color:#50fa7b;background:#001a08;}
+.badge.r{border-color:#ff5555;color:#ff5555;background:#1a0000;}
+.badge.y{border-color:#FFD700;color:#FFD700;background:#1a1200;}
+.inv-opt{
+  background:#0d0d1a;border:2px solid #222;
+  padding:12px;margin-bottom:8px;cursor:pointer;
+  text-align:center;
+}
+.inv-opt:active,.inv-opt.sel{background:#0a1030;border-color:#6495ED;}
+.budget-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.budget-row label{font-size:7px;color:#aaa;min-width:80px;}
+.budget-row input[type=range]{flex:1;-webkit-appearance:none;height:3px;background:#222;outline:none;}
+.budget-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:#6495ED;cursor:pointer;}
+.budget-row .bv{font-size:7px;color:#6495ED;min-width:75px;text-align:right;}
+.phone-wrap{background:#050510;border:2px solid #444;max-width:260px;margin:0 auto;}
+.phone-bar{background:#0a0a0a;padding:5px 10px;display:flex;justify-content:space-between;font-size:6px;color:#666;}
+.phone-hdr{background:#0d1a3d;border-bottom:2px solid #333;padding:8px 10px;font-size:8px;color:#6495ED;}
+.phone-body{padding:10px;}
+.phone-bal{background:#080820;border:1px solid #2a2a4a;padding:10px;text-align:center;margin-bottom:10px;}
+.phone-bal-l{font-size:6px;color:#6495ED;margin-bottom:4px;}
+.phone-bal-v{font-size:16px;color:#6495ED;}
+.phone-inp{width:100%;background:#050510;border:1px solid #333;color:#ddd;font-family:'Press Start 2P',monospace;font-size:7px;padding:7px;margin-bottom:6px;}
+.phone-btn{width:100%;background:#0d1a3d;border:1px solid #6495ED;color:#6495ED;font-family:'Press Start 2P',monospace;font-size:7px;padding:8px;cursor:pointer;margin-bottom:5px;}
+.phone-btn.g{background:#001a08;border-color:#50fa7b;color:#50fa7b;}
+.tx-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #111;font-size:7px;color:#888;}
+.tx-p{color:#50fa7b;font-weight:bold;}
+.tx-n{color:#ff5555;font-weight:bold;}
+.cmp-tbl{width:100%;border-collapse:collapse;font-size:7px;}
+.cmp-tbl th{padding:6px 4px;font-size:6px;border-bottom:1px solid #222;}
+.cmp-tbl th:nth-child(2){color:#6495ED;}
+.cmp-tbl th:nth-child(3){color:#bd93f9;}
+.cmp-tbl td{padding:5px 4px;border-bottom:1px solid #111;color:#888;vertical-align:top;line-height:1.6;}
+.sl-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+
+/* TITLE */
+#title{
+  position:fixed;inset:0;z-index:100;
+  background:#050510;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:20px;
+  overflow:hidden;
+}
+#title-canvas{position:absolute;inset:0;}
+.t-content{position:relative;z-index:1;text-align:center;width:100%;max-width:360px;}
+.t-bank{font-size:8px;color:#6495ED;letter-spacing:3px;margin-bottom:14px;}
+.t-logo{font-size:clamp(28px,8vw,48px);color:#fff;line-height:1.1;margin-bottom:8px;text-shadow:0 0 20px #6495ED88;}
+.t-logo span{color:#FFD700;text-shadow:0 0 20px #FFD70088;}
+.t-sub{font-size:8px;color:#888;margin-bottom:28px;line-height:1.8;}
+.av-row{display:flex;gap:12px;justify-content:center;margin-bottom:6px;}
+.av-opt{
+  width:56px;height:56px;border:2px solid #333;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;background:#0a0a1a;
+  image-rendering:pixelated;
+}
+.av-opt.sel,.av-opt:active{border-color:#FFD700;background:#1a1200;}
+.t-label{font-size:7px;color:#555;margin-bottom:10px;letter-spacing:1px;}
+.t-btn{
+  background:#0d1a3d;border:3px solid #FFD700;
+  color:#FFD700;font-family:'Press Start 2P',monospace;
+  font-size:10px;padding:14px 32px;cursor:pointer;
+  letter-spacing:1px;text-transform:uppercase;
+  margin-top:10px;
+}
+.t-btn:active{background:#1a2a5a;}
+.t-hint{font-size:6px;color:#333;margin-top:14px;letter-spacing:1px;}
+
+/* MAP */
+#map-screen{
+  position:fixed;inset:0;z-index:70;
+  background:#050510;
+  display:none;flex-direction:column;overflow-y:auto;
+}
+#map-hdr{padding:50px 14px 14px;text-align:center;}
+#map-hdr h2{font-size:11px;color:#FFD700;margin-bottom:6px;}
+#map-hdr p{font-size:7px;color:#888;}
+.map-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px;max-width:420px;margin:0 auto;}
+.map-cell{
+  background:#0a0a1a;border:2px solid #222;
+  padding:14px 10px;text-align:center;cursor:pointer;
+}
+.map-cell:active{background:#151530;}
+.map-cell.done{border-color:#50fa7b;}
+.map-cell.lock{opacity:0.4;cursor:not-allowed;}
+.map-emoji{font-size:28px;margin-bottom:6px;}
+.map-num{font-size:7px;color:#555;margin-bottom:4px;}
+.map-name{font-size:8px;color:#ddd;margin-bottom:4px;line-height:1.5;}
+.map-stat{font-size:7px;margin-top:6px;}
+
+/* LEVEL COMPLETE */
+#lc{
+  position:fixed;inset:0;z-index:80;
+  background:#050510;
+  display:none;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:20px;text-align:center;overflow-y:auto;
+}
+.lc-big{font-size:40px;margin-bottom:12px;}
+.lc-h{font-size:12px;color:#FFD700;margin-bottom:8px;}
+.lc-s{font-size:8px;color:#888;margin-bottom:16px;}
+.lc-pts{font-size:36px;color:#FFD700;}
+.lc-max{font-size:7px;color:#555;margin-bottom:20px;}
+.lc-box{background:#0a0a1a;border:2px solid #222;padding:14px;margin-bottom:16px;width:100%;max-width:380px;text-align:left;}
+.lc-item{font-size:7px;color:#888;margin-bottom:8px;display:flex;gap:8px;line-height:1.6;}
+.lc-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+.lc-btn{
+  background:#0a0a1a;border:2px solid #6495ED;
+  color:#6495ED;font-family:'Press Start 2P',monospace;
+  font-size:8px;padding:12px 20px;cursor:pointer;
+}
+.lc-btn.gold{border-color:#FFD700;color:#FFD700;background:#0a0800;}
+.lc-btn:active{background:#151530;}
+
+/* TOAST */
+.px-toast{
+  position:fixed;top:52px;right:8px;
+  background:#001a08;border:2px solid #50fa7b;
+  color:#50fa7b;font-family:'Press Start 2P',monospace;
+  font-size:8px;padding:8px 12px;z-index:200;
+  animation:toastPx 2.2s steps(1) forwards;pointer-events:none;
+}
+@keyframes toastPx{0%{opacity:0;transform:translateX(20px)}8%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="ui"></div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hud-chip">💰 <span class="v" id="h-bal">₮500,000</span></div>
+  <div class="hud-chip">⭐ <span class="v" id="h-pts">0</span></div>
+  <div id="hud-lvbadge">ҮЕ 1</div>
+</div>
+
+<!-- DIALOG -->
+<div id="dlg">
+  <div id="dlg-inner">
+    <canvas id="dlg-face" width="48" height="48"></canvas>
+    <div style="flex:1">
+      <div id="dlg-name">СИСТЕМ</div>
+      <div id="dlg-text">...</div>
+    </div>
+  </div>
+  <div id="dlg-cont">▼ ДАР</div>
+  <div id="dlg-choices"></div>
+</div>
+
+<!-- TOUCH CONTROLS -->
+<div id="ctrl">
+  <div class="dpad">
+    <div class="dpb" id="dp-l">◀</div>
+    <div class="dpb" id="dp-r">▶</div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:flex-end;">
+    <div class="abtn" id="abtn-b">MAP</div>
+    <div class="abtn" id="abtn-a">A</div>
+  </div>
+</div>
+
+<!-- MINIGAME -->
+<div id="mg-sheet">
+  <div id="mg-hdr">
+    <div><div id="mg-title">MINI GAME</div><div id="mg-sub"></div></div>
+    <div id="mg-close" onclick="closeMG()">✕ ХААХ</div>
+  </div>
+  <div id="mg-body"></div>
+</div>
+
+<!-- TITLE -->
+<div id="title">
+  <canvas id="title-canvas"></canvas>
+  <div class="t-content">
+    <div class="t-bank">★ ТӨРИЙН БАНК ★</div>
+    <div class="t-logo">BANK<br><span>QUEST</span></div>
+    <div class="t-sub">САНХҮҮГИЙН АЯЛАЛ<br>PIXEL EDITION</div>
+    <div class="t-label">АВАТАР СОНГОНО УУ</div>
+    <div class="av-row" id="av-row">
+      <canvas class="av-opt sel" id="av0" width="56" height="56" data-i="0" onclick="selAv(0)"></canvas>
+      <canvas class="av-opt" id="av1" width="56" height="56" data-i="1" onclick="selAv(1)"></canvas>
+      <canvas class="av-opt" id="av2" width="56" height="56" data-i="2" onclick="selAv(2)"></canvas>
+      <canvas class="av-opt" id="av3" width="56" height="56" data-i="3" onclick="selAv(3)"></canvas>
+    </div>
+    <button class="t-btn" onclick="startGame()">▶ START GAME</button>
+    <div class="t-hint">★ 30 MIN ★ 4 LEVELS ★ MOBILE READY ★</div>
+  </div>
+</div>
+
+<!-- MAP -->
+<div id="map-screen">
+  <div id="map-hdr"><h2>★ ГАЗРЫН ЗУРАГ ★</h2><p>ҮЕ СОНГОНО УУ</p></div>
+  <div class="map-grid" id="map-grid"></div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- LEVEL COMPLETE -->
+<div id="lc">
+  <div class="lc-big" id="lc-em">🎉</div>
+  <div class="lc-h" id="lc-h">ҮЕ ДУУССАН!</div>
+  <div class="lc-s" id="lc-s">Амжилттай</div>
+  <div class="lc-pts" id="lc-pts">0</div>
+  <div class="lc-max">ОНОО / 400-ААС</div>
+  <div class="lc-box" id="lc-box"></div>
+  <div class="lc-btns">
+    <div class="lc-btn" onclick="goMap()">🗺 MAP</div>
+    <div class="lc-btn gold" id="lc-next" onclick="goNext()">ДАРААХ ▶</div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════
+//  PIXEL ART SPRITE DATA  (16×16 per frame, RGBA palette)
+// ═══════════════════════════════════════════════════════
+// Each sprite is a 16×16 array of palette indices
+// Palette: 0=transparent,1=skin,2=hair,3=shirt,4=pants,5=shoes,
+//          6=dark,7=light,8=accent,9=white,10=gold,11=red,12=green
+
+const PAL = [
+  [0,0,0,0],        // 0 transparent
+  [255,205,148,255],// 1 skin
+  [80,50,20,255],   // 2 dark brown hair
+  [65,105,225,255], // 3 blue shirt (default)
+  [40,40,120,255],  // 4 dark pants
+  [30,30,30,255],   // 5 dark shoes
+  [20,20,40,255],   // 6 very dark
+  [220,220,255,255],// 7 light
+  [255,215,0,255],  // 8 gold/accent
+  [255,255,255,255],// 9 white
+  [255,165,0,255],  // 10 orange
+  [200,50,50,255],  // 11 red
+  [50,200,80,255],  // 12 green
+];
+
+// Player idle frame (16×16)
+const SPR_PLAYER_IDLE = [
+  [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0],
+  [0,0,0,0,0,2,1,1,1,1,2,0,0,0,0,0],
+  [0,0,0,0,2,1,1,1,1,1,1,2,0,0,0,0],
+  [0,0,0,0,2,1,6,1,1,6,1,2,0,0,0,0],
+  [0,0,0,0,2,1,1,1,1,1,1,2,0,0,0,0],
+  [0,0,0,0,0,2,1,11,11,1,2,0,0,0,0,0],
+  [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0,0],
+  [0,0,0,3,3,3,3,3,3,3,3,3,3,0,0,0],
+  [0,0,3,3,3,3,3,3,3,3,3,3,3,3,0,0],
+  [0,0,3,3,3,3,3,3,3,3,3,3,3,3,0,0],
+  [0,0,0,3,3,3,3,3,3,3,3,3,3,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
+  [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
+];
+
+// Player walk frame 1
+const SPR_PLAYER_W1 = [
+  [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0],
+  [0,0,0,0,0,2,1,1,1,1,2,0,0,0,0,0],
+  [0,0,0,0,2,1,1,1,1,1,1,2,0,0,0,0],
+  [0,0,0,0,2,1,6,1,1,6,1,2,0,0,0,0],
+  [0,0,0,0,2,1,1,1,1,1,1,2,0,0,0,0],
+  [0,0,0,0,0,2,1,11,11,1,2,0,0,0,0,0],
+  [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0,0],
+  [0,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0],
+  [0,1,3,3,3,3,3,3,3,3,3,3,3,1,0,0],
+  [0,0,1,3,3,3,3,3,3,3,3,3,1,0,0,0],
+  [0,0,0,3,3,3,3,3,3,3,3,3,0,0,0,0],
+  [0,0,0,0,4,4,4,0,0,4,4,0,0,0,0,0],
+  [0,0,0,0,0,4,4,4,4,4,0,0,0,0,0,0],
+  [0,0,0,0,0,0,4,4,4,0,0,0,0,0,0,0],
+  [0,0,0,0,0,5,5,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,5,5,0,0,0,0,0,0,0,0,0],
+];
+
+// Player walk frame 2
+const SPR_PLAYER_W2 = [
+  [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0],
+  [0,0,0,0,0,2,1,1,1,1,2,0,0,0,0,0],
+  [0,0,0,0,2,1,1,1,1,1,1,2,0,0,0,0],
+  [0,0,0,0,2,1,6,1,1,6,1,2,0,0,0,0],
+  [0,0,0,0,2,1,1,1,1,1,1,2,0,0,0,0],
+  [0,0,0,0,0,2,1,11,11,1,2,0,0,0,0,0],
+  [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0,0],
+  [0,0,3,3,3,3,3,3,3,3,3,3,3,0,0,0],
+  [0,0,1,3,3,3,3,3,3,3,3,3,1,0,0,0],
+  [0,0,0,1,3,3,3,3,3,3,3,1,0,0,0,0],
+  [0,0,0,0,3,3,3,3,3,3,3,0,0,0,0,0],
+  [0,0,0,0,4,4,0,0,0,4,4,4,0,0,0,0],
+  [0,0,0,0,4,0,0,0,4,4,4,0,0,0,0,0],
+  [0,0,0,0,0,0,0,4,4,4,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,5,5,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,5,5,0,0,0,0,0,0,0],
+];
+
+// NPC: Teller (banker lady, pink uniform)
+const SPR_TELLER = [
+  [0,0,0,0,0,2,2,2,2,2,0,0,0,0,0,0],
+  [0,0,0,0,2,1,1,1,1,1,2,0,0,0,0,0],
+  [0,0,0,0,2,1,1,1,1,1,2,0,0,0,0,0],
+  [0,0,0,0,2,1,6,1,1,6,2,0,0,0,0,0],
+  [0,0,0,0,0,2,1,11,11,2,0,0,0,0,0,0],
+  [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0,0],
+  [0,0,0,11,11,11,11,11,11,11,11,0,0,0,0,0],
+  [0,0,11,11,11,11,11,11,11,11,11,11,0,0,0,0],
+  [0,0,11,11,8,11,11,11,11,8,11,11,0,0,0,0],
+  [0,0,0,11,11,11,11,11,11,11,11,0,0,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
+  [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
+];
+
+// NPC: Advisor (suit)
+const SPR_ADVISOR = [
+  [0,0,0,0,0,6,6,6,6,6,6,0,0,0,0,0],
+  [0,0,0,0,6,1,1,1,1,1,1,6,0,0,0,0],
+  [0,0,0,0,6,1,1,1,1,1,1,6,0,0,0,0],
+  [0,0,0,0,6,1,6,1,1,6,1,6,0,0,0,0],
+  [0,0,0,0,6,1,1,9,9,1,1,6,0,0,0,0],
+  [0,0,0,0,0,6,1,1,1,1,6,0,0,0,0,0],
+  [0,0,0,0,0,0,6,6,6,6,0,0,0,0,0,0],
+  [0,0,0,6,6,6,6,6,6,6,6,6,6,0,0,0],
+  [0,0,6,6,6,6,8,6,6,8,6,6,6,6,0,0],
+  [0,0,6,6,6,6,6,6,6,6,6,6,6,6,0,0],
+  [0,0,0,6,6,6,6,6,6,6,6,6,6,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
+  [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
+];
+
+// NPC: Security guard
+const SPR_GUARD = [
+  [0,0,0,0,0,6,2,2,2,6,0,0,0,0,0,0],
+  [0,0,0,0,6,1,1,1,1,1,6,0,0,0,0,0],
+  [0,0,0,0,6,1,1,1,1,1,6,0,0,0,0,0],
+  [0,0,0,0,6,1,6,1,1,6,1,6,0,0,0,0],
+  [0,0,0,0,0,6,1,11,11,1,6,0,0,0,0,0],
+  [0,0,0,0,0,0,6,6,6,6,0,0,0,0,0,0,0],
+  [0,0,0,0,0,8,6,6,6,6,8,0,0,0,0,0],
+  [0,0,0,4,4,4,4,4,4,4,4,4,4,0,0,0],
+  [0,0,4,4,4,4,8,4,4,8,4,4,4,4,0,0],
+  [0,0,4,4,4,4,4,4,4,4,4,4,4,4,0,0],
+  [0,0,0,4,4,4,4,4,4,4,4,4,4,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
+  [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
+];
+
+// NPC: AI robot
+const SPR_ROBOT = [
+  [0,0,0,0,3,3,3,3,3,3,3,3,0,0,0,0],
+  [0,0,0,3,3,3,3,3,3,3,3,3,3,0,0,0],
+  [0,0,3,3,8,3,3,3,3,3,3,8,3,3,0,0],
+  [0,0,3,3,8,8,3,3,3,3,8,8,3,3,0,0],
+  [0,0,3,3,3,3,3,3,3,3,3,3,3,3,0,0],
+  [0,0,3,3,3,9,9,9,9,9,9,3,3,3,0,0],
+  [0,0,0,3,3,3,3,3,3,3,3,3,3,0,0,0],
+  [0,0,0,3,3,3,3,3,3,3,3,3,3,0,0,0],
+  [0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0],
+  [0,3,3,8,3,3,3,3,3,3,3,3,8,3,3,0],
+  [0,0,0,3,3,3,3,3,3,3,3,3,3,0,0,0],
+  [0,0,0,0,3,3,3,0,0,3,3,3,0,0,0,0],
+  [0,0,0,0,3,3,0,0,0,0,3,3,0,0,0,0],
+  [0,0,0,0,3,3,0,0,0,0,3,3,0,0,0,0],
+  [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
+  [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
+];
+
+// NPC variants
+const NPC_SPRS = [SPR_TELLER, SPR_ADVISOR, SPR_GUARD, SPR_ROBOT];
+
+// Tile sprites (8×8 blocks scaled)
+// floor tile
+const TILE_FLOOR = [
+  [6,6,6,6,6,6,6,6],
+  [6,7,7,7,7,7,7,6],
+  [6,7,7,7,7,7,7,6],
+  [6,7,7,6,6,7,7,6],
+  [6,7,7,6,6,7,7,6],
+  [6,7,7,7,7,7,7,6],
+  [6,7,7,7,7,7,7,6],
+  [6,6,6,6,6,6,6,6],
+];
+
+// wall tile
+const TILE_WALL = [
+  [4,4,4,4,4,4,4,4],
+  [4,6,6,6,6,6,6,4],
+  [4,6,4,4,4,4,6,4],
+  [4,4,4,4,4,4,4,4],
+  [4,4,4,4,4,4,4,4],
+  [4,6,4,4,4,4,6,4],
+  [4,6,6,6,6,6,6,4],
+  [4,4,4,4,4,4,4,4],
+];
+
+// window tile
+const TILE_WIN = [
+  [3,3,3,3,3,3,3,3],
+  [3,7,7,3,7,7,7,3],
+  [3,7,7,3,7,7,7,3],
+  [3,3,3,3,3,3,3,3],
+  [3,7,7,7,3,7,7,3],
+  [3,7,7,7,3,7,7,3],
+  [3,3,3,3,3,3,3,3],
+  [3,3,3,3,3,3,3,3],
+];
+
+// ATM sprite (16×16)
+const SPR_ATM = [
+  [0,6,6,6,6,6,6,6,6,6,6,6,6,6,6,0],
+  [6,4,4,4,4,4,4,4,4,4,4,4,4,4,4,6],
+  [6,4,3,3,3,3,3,3,3,3,3,3,3,3,4,6],
+  [6,4,3,9,9,9,9,9,9,9,9,9,9,3,4,6],
+  [6,4,3,9,3,3,3,3,3,3,3,3,9,3,4,6],
+  [6,4,3,9,3,8,8,8,8,8,8,3,9,3,4,6],
+  [6,4,3,9,3,8,3,3,3,3,8,3,9,3,4,6],
+  [6,4,3,9,3,8,3,8,8,3,8,3,9,3,4,6],
+  [6,4,3,9,3,8,3,3,3,3,8,3,9,3,4,6],
+  [6,4,3,9,3,8,8,8,8,8,8,3,9,3,4,6],
+  [6,4,3,9,9,9,9,9,9,9,9,9,9,3,4,6],
+  [6,4,3,3,3,3,3,3,3,3,3,3,3,3,4,6],
+  [6,4,4,4,8,8,4,4,4,4,8,8,4,4,4,6],
+  [6,4,4,4,8,8,4,4,4,4,8,8,4,4,4,6],
+  [6,4,4,4,4,4,4,4,4,4,4,4,4,4,4,6],
+  [0,6,6,6,6,6,6,6,6,6,6,6,6,6,6,0],
+];
+
+// Counter/desk sprite
+const SPR_DESK = [
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6],
+  [6,7,7,7,7,7,7,7,7,7,7,7,7,7,7,6],
+  [6,7,7,3,7,7,7,7,7,7,7,3,7,7,7,6],
+  [6,7,7,7,7,7,7,7,7,7,7,7,7,7,7,6],
+  [6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6],
+  [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],
+  [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],
+  [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],
+  [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+];
+
+// Door sprite
+const SPR_DOOR = [
+  [8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8],
+  [8,4,4,4,4,4,4,4,4,4,4,4,4,4,4,8],
+  [8,4,10,10,10,10,10,10,10,10,10,10,10,10,4,8],
+  [8,4,10,9,9,9,9,9,9,9,9,9,9,10,4,8],
+  [8,4,10,9,9,9,9,9,9,9,9,9,9,10,4,8],
+  [8,4,10,9,9,9,9,9,9,9,9,9,9,10,4,8],
+  [8,4,10,9,9,9,6,6,6,9,9,9,9,10,4,8],
+  [8,4,10,9,9,9,6,9,9,9,9,9,9,10,4,8],
+  [8,4,10,9,9,9,6,6,6,9,9,9,9,10,4,8],
+  [8,4,10,9,9,9,6,9,9,9,9,9,9,10,4,8],
+  [8,4,10,9,9,9,6,6,6,9,9,9,9,10,4,8],
+  [8,4,10,9,9,9,9,9,9,9,9,9,9,10,4,8],
+  [8,4,10,9,9,9,9,9,9,9,8,9,9,10,4,8],
+  [8,4,10,10,10,10,10,10,10,10,10,10,10,10,4,8],
+  [8,4,4,4,4,4,4,4,4,4,4,4,4,4,4,8],
+  [8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8],
+];
+
+// Plant sprite
+const SPR_PLANT = [
+  [0,0,0,0,0,0,12,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,12,12,12,0,0,0,0,0,0,0,0],
+  [0,0,0,0,12,12,12,12,12,0,0,0,0,0,0,0],
+  [0,0,0,12,12,9,12,12,12,12,0,0,0,0,0,0],
+  [0,0,0,12,12,12,12,12,12,12,0,0,0,0,0,0],
+  [0,0,0,0,12,12,12,12,12,0,0,0,0,0,0,0],
+  [0,0,0,0,0,12,12,12,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,8,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,8,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,8,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,6,6,8,6,6,0,0,0,0,0,0,0],
+  [0,0,0,0,6,7,8,7,6,0,0,0,0,0,0,0],
+  [0,0,0,0,6,7,7,7,6,0,0,0,0,0,0,0],
+  [0,0,0,0,6,7,7,7,6,0,0,0,0,0,0,0],
+  [0,0,0,0,6,6,6,6,6,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+];
+
+// Coin sparkle for decoration
+const SPR_COIN = [
+  [0,0,0,8,8,0,0,0],
+  [0,0,8,10,10,8,0,0],
+  [0,8,10,10,10,10,8,0],
+  [8,10,10,8,8,10,10,8],
+  [8,10,10,8,8,10,10,8],
+  [0,8,10,10,10,10,8,0],
+  [0,0,8,10,10,8,0,0],
+  [0,0,0,8,8,0,0,0],
+];
+
+// ═══════════════════════════════════════════════════════
+//  SPRITE RENDERING ENGINE
+// ═══════════════════════════════════════════════════════
+const SCALE = 3; // world pixel scale (each sprite px = 3 canvas px)
+
+function drawSprite(ctx, spr, wx, wy, palOverrides, flipX) {
+  const size = spr.length;
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      let pidx = spr[row][flipX ? size - 1 - col : col];
+      if (pidx === 0) continue;
+      const rgba = (palOverrides && palOverrides[pidx]) ? palOverrides[pidx] : PAL[pidx];
+      ctx.fillStyle = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},${rgba[3]/255})`;
+      ctx.fillRect(wx + col * SCALE, wy + row * SCALE, SCALE, SCALE);
+    }
+  }
+}
+
+function drawSprite8(ctx, spr, wx, wy, scl) {
+  const s = scl || SCALE;
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      let pidx = spr[row][col];
+      if (pidx === 0) continue;
+      const rgba = PAL[pidx];
+      ctx.fillStyle = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},1)`;
+      ctx.fillRect(wx + col * s, wy + row * s, s, s);
+    }
+  }
+}
+
+// Pre-render sprite to an offscreen canvas for perf
+function makeSpriteCanvas(spr, palOvr, flip) {
+  const size = spr.length;
+  const oc = document.createElement('canvas');
+  oc.width = size * SCALE; oc.height = size * SCALE;
+  const octx = oc.getContext('2d');
+  drawSprite(octx, spr, 0, 0, palOvr, flip);
+  return oc;
+}
+
+// Avatar palette overrides
+const AV_PALETTES = [
+  null, // default blue
+  { 3: [220,80,80,255], 4: [100,40,40,255] },   // red shirt
+  { 3: [50,150,80,255], 4: [20,80,40,255] },     // green shirt
+  { 3: [150,80,200,255], 4: [70,30,120,255] },   // purple shirt
+];
+const AV_SKIN = [
+  [255,205,148,255], [240,190,130,255],
+  [200,150,100,255], [150,100,60,255]
+];
+
+function getPlayerPal(avIdx) {
+  const pal = AV_PALETTES[avIdx] ? {...AV_PALETTES[avIdx]} : {};
+  pal[1] = AV_SKIN[avIdx];
+  return pal;
+}
+
+// Draw avatar preview on title screen
+function drawAvatarPreview(canvas, avIdx) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // background
+  ctx.fillStyle = '#0a0a1a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // draw sprite centered, scale to fit 56px canvas
+  const s = 2;
+  const spr = SPR_PLAYER_IDLE;
+  const off = (canvas.width - 16 * s) / 2;
+  const pal = getPlayerPal(avIdx);
+  for (let row = 0; row < 16; row++) {
+    for (let col = 0; col < 16; col++) {
+      let pidx = spr[row][col];
+      if (pidx === 0) continue;
+      const rgba = pal[pidx] || PAL[pidx];
+      ctx.fillStyle = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},1)`;
+      ctx.fillRect(off + col * s, 4 + row * s, s, s);
+    }
+  }
+}
+
+// Draw NPC face on dialog portrait
+function drawNPCFace(canvas, npcIdx) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 48, 48);
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0, 0, 48, 48);
+  const spr = NPC_SPRS[npcIdx] || SPR_TELLER;
+  const s = 3;
+  const off = (48 - 16 * s) / 2 + 8; // just head rows 0-6
+  for (let row = 0; row < 7; row++) {
+    for (let col = 0; col < 16; col++) {
+      let pidx = spr[row][col];
+      if (pidx === 0) continue;
+      const rgba = PAL[pidx];
+      ctx.fillStyle = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},1)`;
+      ctx.fillRect(off + col * s, 6 + row * s, s, s);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════════════════════
+const GS = {
+  av: 0, balance: 500000, pts: 0,
+  done: new Set(), lvl: 0,
+  phase: 'title', // title|playing|dialog|mg|map|lc
+};
+
+const inp = { left: false, right: false };
+const plr = {
+  wx: 80, // world x
+  spd: 2.2, facing: 1,
+  frame: 0, fTimer: 0,
+  sprW: 16 * SCALE, sprH: 16 * SCALE,
+};
+
+let camX = 0;
+
+// ═══════════════════════════════════════════════════════
+//  CANVAS SETUP
+// ═══════════════════════════════════════════════════════
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize() {
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W; canvas.height = H;
+  ctx.imageSmoothingEnabled = false;
+}
+resize();
+window.addEventListener('resize', () => { resize(); });
+
+// Title canvas starfield
+const tc = document.getElementById('title-canvas');
+tc.width = window.innerWidth; tc.height = window.innerHeight;
+const tctx = tc.getContext('2d');
+
+// ═══════════════════════════════════════════════════════
+//  LEVELS
+// ═══════════════════════════════════════════════════════
+// Each level: bg color scheme, floor palette, NPCs, interactables, width
+const LEVELS = [
+  {
+    id:1, emoji:'🏦', name:'Оюутны амьдрал',
+    bgTop:'#07091a', bgBot:'#0d1535',
+    floorCol: [60,70,120], wallCol: [30,35,80],
+    accentCol: [100,130,255],
+    worldW: 2800,
+    npcs: [
+      { wx:300, sprIdx:0, name:'ТЕЛЛЕР БОЛОРМАА', color:'#ff8888',
+        faceIdx:0,
+        dialog:[
+          {speaker:'ТЕЛЛЕР БОЛОРМАА',text:'Сайн байна уу! Төрийн банкинд тавтай морилно уу! Танд яаж туслах вэ?'},
+          {speaker:'ТЕЛЛЕР БОЛОРМАА',text:'Харилцах данс нь өдөр тутмын гүйлгээнд тохиромжтой. Дебит карт хамт олгоно. Ямар данс нээлгэхийг хүсч байна?'}
+        ],
+        quiz:{q:'ОЮУТАНД АЛЬ ДАНС ТОХИРОМЖТОЙ ВЭ?',
+          ch:[
+            {i:'💳',t:'Харилцах данс — гүйлгээ, дебит карт',ok:true},
+            {i:'🏛',t:'Хадгаламжийн данс — өндөр хүү, хязгаар',ok:false},
+            {i:'💵',t:'Бэлнээр авна',ok:false},
+          ],
+          gf:'✓ ЗӨРВЭЛ! ХАРИЛЦАХ ДАНС НЬ ТА ДЕБИТ КАРТАА АВЛАА! +40 ОНОО',
+          bf:'✗ ХАРИЛЦАХ ДАНС НЬ ДЕБИТ КАРТТАЙ, ХЯЗГААРГҮЙ ГҮЙЛГЭЭТЭЙ!',
+          rw:40, info:'ХАРИЛЦАХ ДАНС: ХЯЗГААРГҮЙ ГҮЙЛГЭЭ + ДЕБИТ КАРТ. ХАДГАЛАМЖ: 8-12% ХҮҮ + ХУГАЦААНЫ ХЯЗГААР.'}
+      },
+      { wx:800, sprIdx:3, name:'ЦАХИМ ТУСЛАГЧ', color:'#50fa7b',
+        faceIdx:3,
+        dialog:[{speaker:'ЦАХИМ ТУСЛАГЧ',text:'САРЫН ТӨСӨВ ЗОХИОХОД ТАН ДАА ТУСАЛЪЯ! МИНИ ТОГЛООМД ОРНО УУ.'}],
+        mg:'budget'
+      },
+      { wx:1400, sprIdx:2, name:'АЮУЛГҮЙ БАЙДАЛ', color:'#ffb86c',
+        faceIdx:2,
+        dialog:[
+          {speaker:'АЮУЛГҮЙ БАЙДАЛ',text:'PIN КОДОО ХАМГААЛ! КАРТЫН МЭДЭЭЛЛИЙГ ХЭЗЭЭ Ч ХУВААЛЦАЖ БОЛОХГҮЙ.'},
+          {speaker:'АЮУЛГҮЙ БАЙДАЛ',text:'ДЭЛГҮҮРТ ЗАРЦУУЛАЛТАА ТООЦООЛ!'}
+        ],
+        mg:'shopping'
+      },
+    ],
+    deco:[
+      {wx:200,spr:SPR_DESK,label:'ЛАВЛАХ ШИРЭЭ'},
+      {wx:600,spr:SPR_ATM,label:'ATM'},
+      {wx:1100,spr:SPR_PLANT},
+      {wx:1800,spr:SPR_PLANT},
+      {wx:2200,spr:SPR_DESK},
+    ],
+    door:{wx:2650, label:'ГАРАХ →'},
+  },
+  {
+    id:2, emoji:'📱', name:'Цахим Банк',
+    bgTop:'#04120a', bgBot:'#081a10',
+    floorCol: [30,90,60], wallCol: [15,50,30],
+    accentCol: [50,200,100],
+    worldW: 2800,
+    npcs: [
+      { wx:320, sprIdx:3, name:'ГЯЛС БАНК', color:'#50fa7b',
+        faceIdx:3,
+        dialog:[{speaker:'ГЯЛС БАНК',text:'ГЯЛС БАНК АППЛИКЕЙШНООР БАЙРНЫ МӨНГӨ ТӨЛЖ, НАЙЗАДАА ШИЛЖҮҮЛЭ!'}],
+        mg:'gyalsbank'
+      },
+      { wx:900, sprIdx:2, name:'КИБЕР ХАМГААЛАЛТ', color:'#ff5555',
+        faceIdx:2,
+        dialog:[{speaker:'КИБЕР ХАМГААЛАЛТ',text:'⚠ ФИШИНГ ХАЛДЛАГА ТАРХАЖ БАЙНА! ТА МЕССЕЖИЙГ ШАЛГААРАЙ!'}],
+        mg:'phishing'
+      },
+      { wx:1600, sprIdx:1, name:'ДИЖИТАЛ МЕНЕЖЕР', color:'#6495ED',
+        faceIdx:1,
+        dialog:[{speaker:'ДИЖИТАЛ МЕНЕЖЕР',text:'МОБАЙЛ БАНК ХААНААС Ч 24/7 БОЛОМЖТОЙ!'}],
+        quiz:{q:'МОБАЙЛ БАНКИНГИЙН ХАМГИЙН ТОМ ДАВУУ ТАЛ?',
+          ch:[
+            {i:'⏰',t:'24/7 БОЛОМЖТОЙ — БАНК РУУ ЯВАХ ШААРДЛАГАГҮЙ',ok:true},
+            {i:'💵',t:'БЭЛЭН МӨНГОНЫ ДҮН ИХ',ok:false},
+            {i:'📞',text:'ЗӨВХӨН УТСААР',ok:false},
+          ],
+          gf:'✓ ЗӨРВЭЛ! МОБАЙЛ БАНК 24/7, ХААНААС Ч!',
+          bf:'✗ ХАМГИЙН ТОМ ДАВУУ ТАЛ: 24/7, ХААНААС Ч ХЭРЭГЛЭХ БОЛОМЖ!',
+          rw:35,info:'МОНГОЛЫН МОБАЙЛ БАНКИНГИЙН ХЭРЭГЛЭГЧИД ЖИЛ БҮР 40%+ ӨСЧ БАЙНА.'}
+      },
+    ],
+    deco:[
+      {wx:200,spr:SPR_ATM},{wx:700,spr:SPR_PLANT},
+      {wx:1200,spr:SPR_ATM},{wx:2000,spr:SPR_PLANT},
+    ],
+    door:{wx:2650,label:'ГАРАХ →'},
+  },
+  {
+    id:3, emoji:'🌍', name:'Олон Улс',
+    bgTop:'#0d0618', bgBot:'#150a28',
+    floorCol: [80,40,140], wallCol: [50,20,100],
+    accentCol: [180,100,255],
+    worldW: 2800,
+    npcs: [
+      { wx:320, sprIdx:1, name:'ЗӨВЛӨХ БАТБАЯР', color:'#bd93f9',
+        faceIdx:1,
+        dialog:[{speaker:'ЗӨВЛӨХ БАТБАЯР',text:'ГЕРМАНД ЯВАХЫН ӨМНӨ САНХҮҮГИЙН ХЭРЭГСЛИЙГЭЭ БЭЛД! ХАРЬЦУУЛЪЯ.'}],
+        mg:'compare'
+      },
+      { wx:950, sprIdx:0, name:'ВАЛЮТ АРИЛЖАА', color:'#FFD700',
+        faceIdx:0,
+        dialog:[{speaker:'ВАЛЮТ АРИЛЖАА',text:'ГЕРМАНД €1000 ЕВРО ХЭРЭГТЭЙ. ХАНШ БА ШИМТГЭЛИЙГ ТООЦООЛ!'}],
+        mg:'currency'
+      },
+      { wx:1600, sprIdx:3, name:'ДЭЛХИЙН ЧИГ ХАНДЛАГА', color:'#50fa7b',
+        faceIdx:3,
+        dialog:[{speaker:'ДЭЛХИЙН ЧИГ ХАНДЛАГА',text:'REVOLUT, WISE ЗЭРЭГ ФИНТЕК АППУУДЫН ТУХАЙ МЭДЭХ ХЭРЭГТЭЙ!'}],
+        quiz:{q:'REVOLUT/WISE-ИЙН ДАВУУ ТАЛ ЮУ ВЭ?',
+          ch:[
+            {i:'💸',t:'ГАДААД ШИЛЖҮҮЛЭГТ ХЯМД ШИМТГЭЛ, ТЭР ДАРГААР',ok:true},
+            {i:'🏦',t:'МОНГОЛД ИХ ATM',ok:false},
+            {i:'📞',t:'МОНГОЛ ХЭЛ САЙТАЙ',ok:false},
+          ],
+          gf:'✓ ЗӨРВЭЛ! ФИНТЕК: ХЯМД ШИМТГЭЛ, ХУРДАН ГҮЙЛГЭЭ!',
+          bf:'✗ ФИНТЕК АППУУДЫН ДАВУУ ТАЛ: ХЯМД ШИМТГЭЛ + ХУРДАН ГҮЙЛГЭЭ!',
+          rw:40,info:'REVOLUT: 30+ ВАЛЮТАД БОДИТ ХАНШ. WISE: ОЛОН УЛС ШИЛЖҮҮЛЭГТ ХЯМД.'}
+      },
+    ],
+    deco:[
+      {wx:200,spr:SPR_PLANT},{wx:700,spr:SPR_ATM},
+      {wx:1200,spr:SPR_DESK},{wx:1900,spr:SPR_PLANT},
+    ],
+    door:{wx:2650,label:'ГАРАХ →'},
+  },
+  {
+    id:4, emoji:'📈', name:'Ирээдүйн Санхүү',
+    bgTop:'#030d05', bgBot:'#061508',
+    floorCol: [20,90,35], wallCol: [10,50,20],
+    accentCol: [50,220,80],
+    worldW: 2800,
+    npcs: [
+      { wx:320, sprIdx:1, name:'ЗӨВЛӨХ БАТБАЯР', color:'#50fa7b',
+        faceIdx:1,
+        dialog:[{speaker:'ЗӨВЛӨХ БАТБАЯР',text:'ХӨРӨНГӨ ОРУУЛАЛТ ЭРТ ЭХЛЭХ ТУСАМ НИЙЛМЭЛ ХҮҮ ИХ АВНА!'}],
+        mg:'invest'
+      },
+      { wx:950, sprIdx:0, name:'ЗЭЭЛИЙН ЗӨВЛӨХ', color:'#FFD700',
+        faceIdx:0,
+        dialog:[{speaker:'ЗЭЭЛИЙН ЗӨВЛӨХ',text:'ОРОН СУУЦ АВАХЫГ МӨРӨӨДӨЖ БАЙНА УУ? ЗЭЭЛИЙН НӨХЦӨЛИЙГ СУДАЛ!'}],
+        mg:'loan'
+      },
+      { wx:1600, sprIdx:3, name:'САНХҮҮГИЙН AI', color:'#6495ED',
+        faceIdx:3,
+        dialog:[{speaker:'САНХҮҮГИЙН AI',text:'₮100,000 × (1+0.10)^20 = ₮672,750! НИЙЛМЭЛ ХҮҮГИЙН ХҮЧ!'}],
+        quiz:{q:'ХАМГИЙН УХААЛАГ САНХҮҮГИЙН ШИЙДВЭР АЛЬ ВЭ?',
+          ch:[
+            {i:'💰',t:'ОРЛОГООС 15-20% ХАДГАЛЖ ЭРТ ЭХЛЭХ',ok:true},
+            {i:'🎰',t:'БҮХ МӨНГИЙГ ХУВЬЦААНД',ok:false},
+            {i:'💵',t:'МӨНГИЙГ БЭЛНЭЭР ХАДГАЛАХ',ok:false},
+          ],
+          gf:'✓ ГАЙХАЛТАЙ! НИЙЛМЭЛ ХҮҮ + ЭРТ ЭХЛЭХ = САНХҮҮГИЙН ЭРХТЭН!',
+          bf:'✗ ТОГТМОЛ ХАДГАЛЖ ЭРТ ЭХЛЭХ НЬ ХАМГИЙН БАТТАЙ!',
+          rw:50,info:'₮100К × (1.1)^20 = ₮672,750 — ЗӨВХӨН НИЙЛМЭЛ ХҮҮГИЙН ДҮН!'}
+      },
+      { wx:2400, sprIdx:0, name:'ДИПЛОМ', color:'#FFD700',
+        faceIdx:0,
+        dialog:[
+          {speaker:'ДИПЛОМ 🎓',text:'БАЯР ХҮРГЭЕ! ТА САНХҮҮГИЙН БҮХ ҮЕ ДУУСГАЛАА!'},
+          {speaker:'ДИПЛОМ 🎓',text:'ТА ЖИНХЭНЭ САНХҮҮГИЙН МАСТЕР БОЛЛОО! БАНКНЫ ДАНС, МОБАЙЛ БАНК, ОЛОН УЛС, ХӨРӨНГӨ ОРУУЛАЛТ, ЗЭЭЛ МЭДЭХ БОЛЛОО!'},
+        ],
+        trigger:'finalEnd'
+      },
+    ],
+    deco:[
+      {wx:200,spr:SPR_PLANT},{wx:700,spr:SPR_ATM},
+      {wx:1200,spr:SPR_PLANT},{wx:1900,spr:SPR_DESK},
+    ],
+    door:{wx:2650,label:'ДУУСГАХ ★'},
+  },
+];
+
+// ═══════════════════════════════════════════════════════
+//  WORLD RENDERING
+// ═══════════════════════════════════════════════════════
+// We render at a fixed virtual height, scaled to screen
+const VH = 224; // virtual height in game pixels
+const VW_SCREEN = 256; // virtual screen width we target
+let pixScale;
+
+function getFloorY() {
+  return Math.floor(H * 0.72);
+}
+
+function worldToScreen(wx) {
+  return wx - camX;
+}
+
+// Pixel art font (draw pixel text)
+const PIXEL_CHARS = {
+  ' ':[[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]],
+  'A':[[0,1,0],[1,0,1],[1,1,1],[1,0,1],[1,0,1]],
+  'B':[[1,1,0],[1,0,1],[1,1,0],[1,0,1],[1,1,0]],
+  'C':[[0,1,1],[1,0,0],[1,0,0],[1,0,0],[0,1,1]],
+  'D':[[1,1,0],[1,0,1],[1,0,1],[1,0,1],[1,1,0]],
+  'E':[[1,1,1],[1,0,0],[1,1,0],[1,0,0],[1,1,1]],
+  'F':[[1,1,1],[1,0,0],[1,1,0],[1,0,0],[1,0,0]],
+  'G':[[0,1,1],[1,0,0],[1,0,1],[1,0,1],[0,1,1]],
+  'H':[[1,0,1],[1,0,1],[1,1,1],[1,0,1],[1,0,1]],
+  'I':[[1,1,1],[0,1,0],[0,1,0],[0,1,0],[1,1,1]],
+  'J':[[0,1,1],[0,0,1],[0,0,1],[1,0,1],[0,1,0]],
+  'K':[[1,0,1],[1,1,0],[1,0,0],[1,1,0],[1,0,1]],
+  'L':[[1,0,0],[1,0,0],[1,0,0],[1,0,0],[1,1,1]],
+  'M':[[1,0,1],[1,1,1],[1,1,1],[1,0,1],[1,0,1]],
+  'N':[[1,0,1],[1,1,1],[1,1,1],[1,0,1],[1,0,1]],
+  'O':[[0,1,0],[1,0,1],[1,0,1],[1,0,1],[0,1,0]],
+  'P':[[1,1,0],[1,0,1],[1,1,0],[1,0,0],[1,0,0]],
+  'Q':[[0,1,0],[1,0,1],[1,0,1],[1,1,1],[0,1,1]],
+  'R':[[1,1,0],[1,0,1],[1,1,0],[1,1,0],[1,0,1]],
+  'S':[[0,1,1],[1,0,0],[0,1,0],[0,0,1],[1,1,0]],
+  'T':[[1,1,1],[0,1,0],[0,1,0],[0,1,0],[0,1,0]],
+  'U':[[1,0,1],[1,0,1],[1,0,1],[1,0,1],[0,1,0]],
+  'V':[[1,0,1],[1,0,1],[1,0,1],[1,0,1],[0,1,0]],
+  'W':[[1,0,1],[1,0,1],[1,1,1],[1,1,1],[1,0,1]],
+  'X':[[1,0,1],[1,0,1],[0,1,0],[1,0,1],[1,0,1]],
+  'Y':[[1,0,1],[1,0,1],[0,1,0],[0,1,0],[0,1,0]],
+  'Z':[[1,1,1],[0,0,1],[0,1,0],[1,0,0],[1,1,1]],
+  '0':[[0,1,0],[1,0,1],[1,0,1],[1,0,1],[0,1,0]],
+  '1':[[0,1,0],[1,1,0],[0,1,0],[0,1,0],[1,1,1]],
+  '2':[[1,1,0],[0,0,1],[0,1,0],[1,0,0],[1,1,1]],
+  '3':[[1,1,0],[0,0,1],[0,1,0],[0,0,1],[1,1,0]],
+  '4':[[1,0,1],[1,0,1],[1,1,1],[0,0,1],[0,0,1]],
+  '5':[[1,1,1],[1,0,0],[1,1,0],[0,0,1],[1,1,0]],
+  '6':[[0,1,1],[1,0,0],[1,1,0],[1,0,1],[0,1,0]],
+  '7':[[1,1,1],[0,0,1],[0,1,0],[0,1,0],[0,1,0]],
+  '8':[[0,1,0],[1,0,1],[0,1,0],[1,0,1],[0,1,0]],
+  '9':[[0,1,0],[1,0,1],[0,1,1],[0,0,1],[0,1,0]],
+  '!':[[0,1,0],[0,1,0],[0,1,0],[0,0,0],[0,1,0]],
+  '?':[[1,1,0],[0,0,1],[0,1,0],[0,0,0],[0,1,0]],
+  '→':[[0,0,0],[0,1,0],[1,1,1],[0,1,0],[0,0,0]],
+  '★':[[0,1,0],[1,1,1],[0,1,0],[1,0,1],[0,0,0]],
+  '▶':[[1,0,0],[1,1,0],[1,1,1],[1,1,0],[1,0,0]],
+  '◀':[[0,0,1],[0,1,1],[1,1,1],[0,1,1],[0,0,1]],
+};
+
+function drawPixelText(ctx, text, x, y, color, ps) {
+  const pxSz = ps || 2;
+  const str = text.toUpperCase();
+  let cx = x;
+  ctx.fillStyle = color || '#FFD700';
+  for (let i = 0; i < str.length; i++) {
+    const ch = PIXEL_CHARS[str[i]];
+    if (!ch) { cx += pxSz * 4; continue; }
+    for (let r = 0; r < 5; r++) {
+      for (let c = 0; c < ch[r].length; c++) {
+        if (ch[r][c]) ctx.fillRect(cx + c * pxSz, y + r * pxSz, pxSz, pxSz);
+      }
+    }
+    cx += (ch[0].length + 1) * pxSz;
+  }
+  return cx;
+}
+
+// ═══════════════════════════════════════════════════════
+//  MAIN RENDER
+// ═══════════════════════════════════════════════════════
+let npcTalkCooldown = {};
+let particleSystem = [];
+
+function addParticle(x, y, color) {
+  for (let i = 0; i < 6; i++) {
+    particleSystem.push({
+      x, y, vx: (Math.random()-0.5)*3, vy: -(Math.random()*3+1),
+      life: 40, maxLife: 40, color
+    });
+  }
+}
+
+function updateParticles() {
+  particleSystem = particleSystem.filter(p => {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.life--;
+    return p.life > 0;
+  });
+}
+
+function drawParticles() {
+  particleSystem.forEach(p => {
+    const alpha = p.life / p.maxLife;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(Math.round(p.x), Math.round(p.y), 3, 3);
+  });
+  ctx.globalAlpha = 1;
+}
+
+let coinAnim = 0;
+let npcBob = 0;
+
+function render() {
+  const t = Date.now();
+  coinAnim = (coinAnim + 0.04) % (Math.PI * 2);
+  npcBob = Math.sin(t * 0.002) * 2;
+
+  ctx.fillStyle = '#050510';
+  ctx.fillRect(0, 0, W, H);
+
+  if (GS.phase === 'title' || GS.phase === 'map' || GS.phase === 'lc') return;
+
+  const lv = LEVELS[GS.lvl];
+  const FY = getFloorY();
+  const CEIL_Y = Math.floor(H * 0.18);
+
+  // === BACKGROUND GRADIENT ===
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, lv.bgTop);
+  bg.addColorStop(1, lv.bgBot);
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // === CEILING ===
+  const [wr, wg, wb] = lv.wallCol;
+  ctx.fillStyle = `rgb(${wr},${wg},${wb})`;
+  ctx.fillRect(0, CEIL_Y, W, 16);
+
+  // Ceiling lights
+  for (let lx = 80; lx < W + camX % 160; lx += 160) {
+    const sx = lx - (camX % 160);
+    ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.3)`;
+    ctx.fillRect(sx - 20, CEIL_Y - 4, 40, 6);
+    // Light cone
+    ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.05)`;
+    ctx.beginPath();
+    ctx.moveTo(sx - 20, CEIL_Y + 6);
+    ctx.lineTo(sx - 60, FY);
+    ctx.lineTo(sx + 60, FY);
+    ctx.lineTo(sx + 20, CEIL_Y + 6);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // === BACK WALL ===
+  const [fr, fg_, fb] = lv.floorCol;
+  ctx.fillStyle = `rgb(${Math.floor(fr*0.5)},${Math.floor(fg_*0.5)},${Math.floor(fb*0.5)})`;
+  ctx.fillRect(0, CEIL_Y + 16, W, FY - CEIL_Y - 16);
+
+  // Wall tiles (pixel art pattern)
+  const tileScl = 5;
+  const tileW = 8 * tileScl;
+  const tileH = 8 * tileScl;
+  const wallPal = { 4: lv.wallCol, 6: [wr*0.4,wg*0.4,wb*0.4].map(Math.floor), 7: [wr+30,wg+30,wb+30].map(v=>Math.min(255,Math.floor(v))) };
+  for (let ty = CEIL_Y + 16; ty < FY - tileH; ty += tileH) {
+    for (let tx = -(camX % tileW) - tileW; tx < W + tileW; tx += tileW) {
+      // Simple brick pattern
+      const row = Math.floor((ty - CEIL_Y) / tileH);
+      const offset = (row % 2) * Math.floor(tileW / 2);
+      ctx.strokeStyle = `rgba(${wr+15},${wg+15},${wb+15},0.4)`;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(tx + offset - (camX % Math.floor(tileW/2)) % tileW, ty, tileW, tileH);
+    }
+  }
+
+  // === FLOOR ===
+  const flrGrad = ctx.createLinearGradient(0, FY, 0, H);
+  flrGrad.addColorStop(0, `rgb(${fr},${fg_},${fb})`);
+  flrGrad.addColorStop(0.3, `rgb(${Math.floor(fr*0.7)},${Math.floor(fg_*0.7)},${Math.floor(fb*0.7)})`);
+  flrGrad.addColorStop(1, '#000');
+  ctx.fillStyle = flrGrad;
+  ctx.fillRect(0, FY, W, H - FY);
+
+  // Floor tile lines
+  const ftW = 48;
+  ctx.strokeStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.15)`;
+  ctx.lineWidth = 1;
+  for (let fx = (-camX % ftW + ftW) % ftW - ftW; fx < W + ftW; fx += ftW) {
+    ctx.beginPath(); ctx.moveTo(fx, FY); ctx.lineTo(fx, H); ctx.stroke();
+  }
+  // Floor highlight line
+  ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.6)`;
+  ctx.fillRect(0, FY, W, 2);
+
+  // === DECORATIONS ===
+  lv.deco.forEach(d => {
+    const sx = d.wx - camX;
+    if (sx < -80 || sx > W + 80) return;
+    const s = d.spr;
+    const sprSize = s.length;
+    const baseY = FY - sprSize * SCALE;
+    drawSprite(ctx, s, sx - (sprSize * SCALE) / 2, baseY, null, false);
+  });
+
+  // === DOOR ===
+  {
+    const dw = lv.door;
+    const sx = dw.wx - camX;
+    if (sx > -100 && sx < W + 100) {
+      const glow = 0.5 + Math.sin(coinAnim * 2) * 0.3;
+      ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 20 * glow;
+      drawSprite(ctx, SPR_DOOR, sx - 24, FY - 50, null, false);
+      ctx.shadowBlur = 0;
+      // Label
+      const playerNear = Math.abs(plr.wx - dw.wx) < 100;
+      if (playerNear) {
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(sx - 40, FY - 62, 80, 14);
+        ctx.fillStyle = '#000';
+        drawPixelText(ctx, dw.label, sx - 36, FY - 60, '#000', 1.5);
+      }
+    }
+  }
+
+  // === NPCs ===
+  lv.npcs.forEach((npc, ni) => {
+    const sx = npc.wx - camX;
+    if (sx < -100 || sx > W + 100) return;
+    const sprSize = 16;
+    const npcY = FY - sprSize * SCALE - 2;
+    const bob = Math.sin(Date.now() * 0.002 + ni) * 2;
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(sx, FY - 4, 18, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const spr = NPC_SPRS[npc.sprIdx] || SPR_TELLER;
+    drawSprite(ctx, spr, sx - sprSize * SCALE / 2, npcY + bob, null, false);
+
+    // Name + bubble when near
+    const dist = Math.abs(plr.wx - npc.wx);
+    if (dist < 90) {
+      // Name tag
+      ctx.fillStyle = npc.color || '#FFD700';
+      const nameY = npcY + bob - 16;
+      ctx.fillRect(sx - 44, nameY, 88, 12);
+      ctx.fillStyle = '#000';
+      drawPixelText(ctx, npc.name.slice(0, 8), sx - 41, nameY + 2, '#000', 1.5);
+
+      // Chat bubble bounce
+      const bubbleY = nameY - 16;
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillRect(sx - 20, bubbleY, 40, 12);
+      ctx.fillStyle = npc.color;
+      ctx.fillRect(sx - 18, bubbleY + 1, 36, 10);
+      ctx.fillStyle = '#000';
+      drawPixelText(ctx, 'A:ЯРИА', sx - 17, bubbleY + 3, '#000', 1.5);
+    }
+  });
+
+  // === PLAYER ===
+  updatePlayer();
+  const FY2 = getFloorY();
+  const pSprSize = 16;
+  const pSprW = pSprSize * SCALE;
+  const pSprH = pSprSize * SCALE;
+  const pScreenX = plr.wx - camX;
+  const pY = FY2 - pSprH;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(pScreenX, FY2 - 4, 16, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Animate frames
+  const frames = [SPR_PLAYER_IDLE, SPR_PLAYER_W1, SPR_PLAYER_W2, SPR_PLAYER_W1];
+  const isWalking = inp.left || inp.right;
+  plr.fTimer++;
+  if (plr.fTimer > 8) { plr.fTimer = 0; plr.frame = (plr.frame + 1) % 4; }
+  const curFrame = isWalking ? frames[plr.frame] : SPR_PLAYER_IDLE;
+  const pal = getPlayerPal(GS.av);
+  drawSprite(ctx, curFrame, pScreenX - pSprW / 2, pY, pal, plr.facing < 0);
+
+  // Particles
+  updateParticles();
+  drawParticles();
+
+  // === HUD OVERLAY ===
+  // Minimap
+  const mmW = 80, mmH = 8, mmX = W - mmW - 8, mmY = 48;
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  ctx.fillRect(mmX - 2, mmY - 2, mmW + 4, mmH + 4);
+  ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.4)`;
+  ctx.fillRect(mmX, mmY, mmW, mmH);
+  // Player dot on minimap
+  const mmPx = mmX + Math.floor((plr.wx / lv.worldW) * mmW);
+  ctx.fillStyle = '#FFD700';
+  ctx.fillRect(mmPx - 2, mmY - 1, 4, mmH + 2);
+  // Door dot
+  const mmDx = mmX + Math.floor((lv.door.wx / lv.worldW) * mmW);
+  ctx.fillStyle = '#ff5555';
+  ctx.fillRect(mmDx - 1, mmY, 2, mmH);
+
+  // Level number pixel text
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(mmX - 2, mmY + mmH + 2, mmW + 4, 10);
+  drawPixelText(ctx, `LVL ${GS.lvl + 1}/4`, mmX, mmY + mmH + 4, `rgb(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]})`, 1.5);
+
+  // Walk hint if very start
+  if (plr.wx < 150 && GS.lvl === 0) {
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(W / 2 - 70, H * 0.45, 140, 16);
+    drawPixelText(ctx, '◀ ▶ АЛХАХ', W / 2 - 54, H * 0.45 + 3, '#FFD700', 2);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  PLAYER MOVEMENT
+// ═══════════════════════════════════════════════════════
+function updatePlayer() {
+  if (GS.phase !== 'playing') return;
+  const lv = LEVELS[GS.lvl];
+  if (!lv) return;
+
+  if (inp.left) { plr.wx -= plr.spd; plr.facing = -1; }
+  if (inp.right) { plr.wx += plr.spd; plr.facing = 1; }
+  plr.wx = Math.max(20, Math.min(lv.worldW - 20, plr.wx));
+
+  // Camera: keep player in center band
+  const dL = W * 0.38, dR = W * 0.62;
+  const sx = plr.wx - camX;
+  if (sx < dL) camX = Math.max(0, plr.wx - dL);
+  else if (sx > dR) camX = Math.min(lv.worldW - W, plr.wx - dR);
+
+  // Auto-trigger door
+  if (Math.abs(plr.wx - lv.door.wx) < 30) {
+    triggerDoor();
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  INTERACTION
+// ═══════════════════════════════════════════════════════
+function interact() {
+  if (GS.phase === 'dialog') { advDlg(); return; }
+  if (GS.phase !== 'playing') return;
+  const lv = LEVELS[GS.lvl];
+  if (!lv) return;
+  for (const npc of lv.npcs) {
+    if (Math.abs(plr.wx - npc.wx) < 80) {
+      triggerNPC(npc);
+      return;
+    }
+  }
+}
+
+function triggerDoor() {
+  if (GS.phase !== 'playing') return;
+  if (GS.lvl >= LEVELS.length - 1) { triggerEnd(); return; }
+  doLevelComplete();
+}
+
+function triggerNPC(npc) {
+  if (npcTalkCooldown[npc.wx] > Date.now()) return;
+  npcTalkCooldown[npc.wx] = Date.now() + 800;
+  addParticle(npc.wx - camX, getFloorY() - 60, npc.color || '#FFD700');
+
+  if (npc.trigger === 'finalEnd') {
+    startDialog(npc.dialog, npc, () => triggerEnd());
+    return;
+  }
+  if (npc.mg) {
+    startDialog(npc.dialog, npc, () => openMG(npc.mg));
+    return;
+  }
+  if (npc.quiz) {
+    startDialog(npc.dialog, npc, () => startQuiz(npc.quiz));
+    return;
+  }
+  startDialog(npc.dialog, npc, null);
+}
+
+function triggerEnd() {
+  GS.done.add(GS.lvl);
+  showFinalComplete();
+}
+
+// ═══════════════════════════════════════════════════════
+//  DIALOG SYSTEM
+// ═══════════════════════════════════════════════════════
+let dlgQueue = [], dlgIdx = 0, dlgCb = null, dlgNPC = null;
+
+function startDialog(msgs, npc, cb) {
+  GS.phase = 'dialog';
+  dlgQueue = msgs; dlgIdx = 0; dlgCb = cb; dlgNPC = npc;
+  renderDlgStep();
+}
+
+function renderDlgStep() {
+  const msg = dlgQueue[dlgIdx];
+  if (!msg) { closeDlg(); return; }
+  // Draw NPC face
+  if (dlgNPC) drawNPCFace(document.getElementById('dlg-face'), dlgNPC.faceIdx || 0);
+  document.getElementById('dlg-name').textContent = msg.speaker || '';
+  document.getElementById('dlg-text').textContent = msg.text;
+  document.getElementById('dlg-cont').style.display = dlgIdx < dlgQueue.length - 1 ? 'block' : 'none';
+  document.getElementById('dlg-choices').innerHTML = '';
+  document.getElementById('dlg').classList.add('open');
+}
+
+function advDlg() {
+  if (GS.phase !== 'dialog') return;
+  dlgIdx++;
+  if (dlgIdx >= dlgQueue.length) {
+    closeDlg();
+    if (dlgCb) { const cb = dlgCb; dlgCb = null; cb(); }
+  } else renderDlgStep();
+}
+
+function closeDlg() {
+  document.getElementById('dlg').classList.remove('open');
+  document.getElementById('dlg-choices').innerHTML = '';
+  GS.phase = 'playing';
+}
+
+function startQuiz(quiz) {
+  GS.phase = 'dialog';
+  document.getElementById('dlg-name').textContent = '❓ АСУУЛТ';
+  document.getElementById('dlg-text').textContent = quiz.q;
+  document.getElementById('dlg-cont').style.display = 'none';
+  document.getElementById('dlg').classList.add('open');
+  const ca = document.getElementById('dlg-choices');
+  ca.innerHTML = '';
+  let answered = false;
+  (quiz.ch || []).forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'dlg-choice';
+    btn.textContent = (c.i || '') + '  ' + (c.t || c.text || '');
+    btn.onclick = () => {
+      if (answered) return; answered = true;
+      btn.className = 'dlg-choice ' + (c.ok ? 'ok' : 'ng');
+      earnPts(c.ok ? quiz.rw : Math.floor(quiz.rw * 0.3), c.ok ? 'ЗӨВ ХАРИУЛТ' : 'ХАРИУЛТ');
+      ca.innerHTML = '';
+      const fb = document.createElement('div');
+      fb.style.cssText = `padding:10px 14px;font-size:8px;line-height:1.8;color:${c.ok?'#50fa7b':'#ff5555'}`;
+      fb.textContent = c.ok ? quiz.gf : quiz.bf;
+      ca.appendChild(fb);
+      if (quiz.info) {
+        const inf = document.createElement('div');
+        inf.style.cssText = 'padding:8px 14px;font-size:7px;color:#8888cc;line-height:1.8;border-top:1px solid #222;';
+        inf.textContent = quiz.info;
+        ca.appendChild(inf);
+      }
+      const nb = document.createElement('button');
+      nb.className = 'dlg-choice';
+      nb.textContent = '▶ ҮРГЭЛЖЛҮҮЛЭХ';
+      nb.onclick = () => { closeDlg(); if(dlgCb){const cb=dlgCb;dlgCb=null;cb();} };
+      ca.appendChild(nb);
+    };
+    ca.appendChild(btn);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  MINI GAMES
+// ═══════════════════════════════════════════════════════
+const MG_DEFS = {
+  budget:   {title:'★ САРЫН ТӨСӨВ',    sub:'МӨНГӨӨ ЗӨВ ХУВААРИЛ'},
+  shopping: {title:'★ ДЭЛГҮҮР',         sub:'КАРТААРАА ТООЦОО ХИЙ'},
+  gyalsbank:{title:'★ ГЯЛС БАНК',        sub:'МОБАЙЛ БАНКИНГИЙН ДААЛГАВАР'},
+  phishing: {title:'★ КИБЕР АЮУЛГҮЙ',   sub:'ФИШИНГ ХАЛДЛАГААС ХАМГААЛАГД'},
+  compare:  {title:'★ БАНКНЫ ХАРЬЦУУЛАЛТ',sub:'ТӨРИЙН БАНК VS REVOLUT'},
+  currency: {title:'★ ВАЛЮТ АРИЛЖАА',   sub:'ТӨГРӨГӨӨ ЕВРО БОЛГО'},
+  invest:   {title:'★ ХӨРӨНГӨ ОРУУЛАЛТ',sub:'ЭРСДЭЛ, ӨГӨӨЖИЙГ СОНГО'},
+  loan:     {title:'★ ЗЭЭЛИЙН ТООЦОО',  sub:'САРЫН ТӨЛБӨРӨӨ ТООЦ'},
+};
+
+function openMG(id) {
+  const def = MG_DEFS[id];
+  document.getElementById('mg-title').textContent = def.title;
+  document.getElementById('mg-sub').textContent = def.sub;
+  const body = document.getElementById('mg-body');
+  body.innerHTML = '';
+  GS.phase = 'mg';
+  const renders = {
+    budget: renderMGBudget, shopping: renderMGShopping,
+    gyalsbank: renderMGGylsBank, phishing: renderMGPhishing,
+    compare: renderMGCompare, currency: renderMGCurrency,
+    invest: renderMGInvest, loan: renderMGLoan,
+  };
+  if (renders[id]) renders[id](body);
+  document.getElementById('mg-sheet').classList.add('open');
+}
+
+function closeMG() {
+  document.getElementById('mg-sheet').classList.remove('open');
+  GS.phase = 'playing';
+}
+
+// ── BUDGET ──
+function renderMGBudget(el) {
+  const cats=[
+    {e:'🏠',n:'БАЙР',k:'rent',d:150000,m:250000},
+    {e:'🍽',n:'ХООЛ',k:'food',d:100000,m:200000},
+    {e:'🚌',n:'ЗОРЧИЛТ',k:'tx',d:50000,m:100000},
+    {e:'📚',n:'БОЛОВСРОЛ',k:'edu',d:50000,m:100000},
+    {e:'🎮',n:'ЗУГАА',k:'fun',d:50000,m:100000},
+    {e:'💰',n:'ХАДГАЛАМЖ',k:'save',d:100000,m:200000},
+  ];
+  const v={}; cats.forEach(c=>v[c.k]=c.d);
+  const INC=500000; let done=false;
+  el.innerHTML=`
+    <span class="px-label">САРЫН ОРЛОГО: <span style="color:#FFD700">₮500,000</span></span>
+    <div id="bg-rows"></div>
+    <div class="px-card" style="margin-top:8px">
+      <div class="px-row"><span>НИЙТ ЗАРЦУУЛАЛТ</span><span id="bg-used" style="color:#ff5555">₮500,000</span></div>
+      <div class="px-row"><span>ҮЛДЭХ</span><span id="bg-rem" style="color:#50fa7b">₮0</span></div>
+    </div>
+    <div id="bg-warn" style="display:none;color:#ff5555;font-size:8px;padding:8px 0;">⚠ ЗАРЛАГА ХЭТЭРЛЭЭ!</div>
+    <button class="px-btn gold" onclick="submitBG()">★ БАТАЛГААЖУУЛАХ</button>
+    <div id="bg-res"></div>
+  `;
+  const rows=document.getElementById('bg-rows');
+  cats.forEach(c=>{
+    const d=document.createElement('div'); d.className='budget-row';
+    d.innerHTML=`<label>${c.e} ${c.n}</label><input type="range" class="budget-slider" min="0" max="${c.m}" step="5000" value="${c.d}" id="bg-${c.k}" oninput="updBG('${c.k}',this.value)"><span class="bv" id="bgv-${c.k}">₮${fmt(c.d)}</span>`;
+    rows.appendChild(d);
+  });
+  window.updBG=(k,val)=>{
+    v[k]=+val; document.getElementById(`bgv-${k}`).textContent=`₮${fmt(+val)}`;
+    const tot=Object.values(v).reduce((a,b)=>a+b,0);
+    const rem=INC-tot;
+    document.getElementById('bg-used').textContent=`₮${fmt(tot)}`;
+    document.getElementById('bg-used').style.color=rem>=0?'#50fa7b':'#ff5555';
+    document.getElementById('bg-rem').textContent=`₮${fmt(Math.abs(rem))}${rem<0?' (ХЭТЭРСЭН)':''}`;
+    document.getElementById('bg-rem').style.color=rem>=0?'#50fa7b':'#ff5555';
+    document.getElementById('bg-warn').style.display=rem<0?'block':'none';
+  };
+  window.submitBG=()=>{
+    if(done)return;
+    const tot=Object.values(v).reduce((a,b)=>a+b,0);
+    if(tot>INC){alert('ЗАРЛАГА ХЭТЭРЛЭЭ!');return;}
+    done=true;
+    const sp=Math.round(v.save/INC*100);
+    const pts=sp>=15?50:sp>=5?35:20;
+    earnPts(pts,'САРЫН ТӨСӨВ');
+    const res=document.getElementById('bg-res');
+    res.className='px-result ok'; res.textContent=`★ ${sp}% ХАДГАЛЖ БАЙНА. ${sp>=15?'МАSH САЙН!':sp>=5?'15%+ ЗОРЬoo!':'15%+ ХАДГАЛАХЫГ ЗОРЬ.'}`;
+    setTimeout(closeMG,2500);
+  };
+}
+
+// ── SHOPPING ──
+function renderMGShopping(el) {
+  const items=[
+    {e:'🍞',n:'ТАЛХ',p:3500},{e:'🥛',n:'СҮҮ',p:4200},
+    {e:'🥚',n:'ӨНДӨГ (10Ш)',p:8900},{e:'🍎',n:'АЛИМ',p:6000},
+    {e:'🧴',n:'ШАМПУНЬ',p:12000},{e:'🍜',n:'ГОЙМОН',p:3800},
+  ];
+  const sel=new Set(); let paid=false;
+  el.innerHTML=`
+    <span class="px-label">ХЭРЭГЦЭЭТЭЙ ЗҮЙЛСИЙГ СОНГО</span>
+    <div id="sh-list"></div>
+    <div class="px-card" style="margin-top:10px">
+      <div class="px-row ttl"><span>НИЙТ</span><span id="sh-tot">₮0</span></div>
+      <div class="px-row"><span>ҮЛДЭГДЭЛ</span><span style="color:#6495ED">₮${fmt(GS.balance)}</span></div>
+    </div>
+    <button class="px-btn gold" id="sh-btn" onclick="shPay()">💳 КАРТААР ТООЦОО</button>
+    <div id="sh-res"></div>
+  `;
+  const list=document.getElementById('sh-list');
+  items.forEach((it,i)=>{
+    const b=document.createElement('button'); b.className='dlg-choice';
+    b.innerHTML=`<span>${it.e}</span><span style="flex:1;margin-left:8px">${it.n}</span><span style="color:#6495ED">₮${fmt(it.p)}</span>`;
+    b.onclick=()=>{
+      if(paid)return;
+      sel.has(i)?sel.delete(i):sel.add(i);
+      b.style.borderTopColor=sel.has(i)?'#FFD700':'';b.style.background=sel.has(i)?'#0d0d2a':'';
+      let t=0;sel.forEach(idx=>t+=items[idx].p);
+      document.getElementById('sh-tot').textContent=`₮${fmt(t)}`;
+    };
+    list.appendChild(b);
+  });
+  window.shPay=()=>{
+    if(paid||sel.size===0){if(!sel.size)alert('ЗҮЙЛ СОНГОНО УУ!');return;}
+    paid=true;let t=0;sel.forEach(i=>t+=items[i].p);
+    if(t>GS.balance){alert('ҮЛДЭГДЭЛ ХҮРЭЛЦЭХГҮЙ!');paid=false;return;}
+    GS.balance-=t;updateHUD();earnPts(30,'ДЭЛГҮҮРТ КАРТ');
+    const res=document.getElementById('sh-res');
+    res.className='px-result ok';res.textContent=`✓ ₮${fmt(t)} КАРТААР ТООЦОО ХИЙЛЭЭ! ҮЛДЭГДЭЛ: ₮${fmt(GS.balance)}`;
+    document.getElementById('sh-btn').disabled=true;
+    setTimeout(closeMG,2500);
+  };
+}
+
+// ── GYALSBANK ──
+function renderMGGylsBank(el) {
+  let step=0;
+  function render(){
+    el.innerHTML=`
+      <div style="display:flex;gap:5px;margin-bottom:12px">
+        ${['💡ЦАХИЛГААН','💸ШИЛЖҮҮЛЭГ','📋ТҮҮХ'].map((s,i)=>`<div style="flex:1;padding:5px;border:1px solid ${i<step?'#50fa7b':i===step?'#6495ED':'#222'};font-size:6px;color:${i<step?'#50fa7b':i===step?'#6495ED':'#555'};text-align:center;">${i<step?'✓ ':''}${s}</div>`).join('')}
+      </div>
+      <div class="phone-wrap">
+        <div class="phone-bar"><span>ГЯЛС БАНК</span><span>9:41</span></div>
+        <div class="phone-hdr">★ ГЯЛС БАНК</div>
+        <div class="phone-body" id="gb-ph"></div>
+      </div>
+      <div id="gb-res"></div>
+    `;
+    const ph=document.getElementById('gb-ph');
+    if(step===0){
+      ph.innerHTML=`
+        <div class="phone-bal"><div class="phone-bal-l">ҮЛДЭГДЭЛ</div><div class="phone-bal-v">₮${fmt(GS.balance)}</div></div>
+        <input class="phone-inp" id="gb-acc" placeholder="ДАНС: 1234567" value="1234567">
+        <input class="phone-inp" id="gb-amt" type="number" placeholder="ДҮН" value="45000">
+        <button class="phone-btn" onclick="gbStep0()">💡 ЦАХИЛГААН ТӨЛӨХ</button>
+      `;
+      window.gbStep0=()=>{
+        const a=+document.getElementById('gb-amt').value||0;
+        if(!a)return; GS.balance-=a;updateHUD();earnPts(20,'ЦАХИЛГААН ТӨЛӨВ');step=1;render();
+      };
+    } else if(step===1){
+      ph.innerHTML=`
+        <div class="phone-bal"><div class="phone-bal-l">ҮЛДЭГДЭЛ</div><div class="phone-bal-v">₮${fmt(GS.balance)}</div></div>
+        <input class="phone-inp" id="gb-to" placeholder="ХҮЛЭЭН АВАГЧ ДАНС" value="5000-0001-2345">
+        <input class="phone-inp" id="gb-am2" type="number" placeholder="ДҮН" value="50000">
+        <button class="phone-btn g" onclick="gbStep1()">💸 ШИЛЖҮҮЛЭХ</button>
+      `;
+      window.gbStep1=()=>{
+        const a=+document.getElementById('gb-am2').value||0;
+        if(!a)return; GS.balance-=a;updateHUD();earnPts(20,'ШИЛЖҮҮЛЭГ');step=2;render();
+      };
+    } else {
+      ph.innerHTML=`
+        <div style="font-size:7px;color:#6495ED;margin-bottom:6px;letter-spacing:1px;">ГҮЙЛГЭЭНИЙ ТҮҮХ</div>
+        ${[['НАЙЗАД ШИЛЖҮҮЛЭГ',-50000],['ЦАХИЛГААН',-45000],['ОРЛОГО — ГЭР БҮЛ',500000]].map(([t,a])=>`<div class="tx-row"><span>${t}</span><span class="${a>0?'tx-p':'tx-n'}">${a>0?'+':''}₮${fmt(Math.abs(a))}</span></div>`).join('')}
+        <button class="phone-btn" style="margin-top:8px" onclick="gbDone()">★ ДУУСГАХ</button>
+      `;
+      window.gbDone=()=>{
+        earnPts(10,'ГҮЙЛГЭЭНИЙ ТҮҮХ');
+        const res=document.getElementById('gb-res');
+        res.className='px-result ok';res.textContent='★ ГЯЛС БАНК АШИГЛАН ГҮЙЛГЭЭНҮҮДИЙГ АМЖИЛТТАЙ ХИЙЛЭЭ!';
+        setTimeout(closeMG,2500);
+      };
+    }
+  }
+  render();
+}
+
+// ── PHISHING ──
+function renderMGPhishing(el) {
+  let ans=false;
+  el.innerHTML=`
+    <div class="px-card" style="border-color:#330000">
+      <div style="font-size:7px;color:#6495ED;margin-bottom:8px">📩 ШИНЭ МЕССЕЖ</div>
+      <div style="background:#1a0000;border:1px solid #440000;padding:10px;margin-bottom:8px">
+        <div style="font-size:7px;color:#ff8888;margin-bottom:5px">🏦 TÖRIIN-BANK-OFFICIAL</div>
+        <div style="font-size:8px;color:#ccc;line-height:1.8">⚠ ТАНЫ ДАНС ТҮР ХААГДСАН!<br>НЭВТРЭХ МЭДЭЭЛЛЭЭ ШИНЭЧЛЭХИЙН ТУЛД:<br><span style="color:#ff5555;text-decoration:underline">http://torii-bank-login.xyz</span><br>⏰ 24 ЦАГТ ХИЙХГҮЙ БОЛ УСТГАГДАНА!</div>
+      </div>
+    </div>
+    <span class="px-label" style="margin-top:10px">ТА ЭНЭ МЕССЕЖТЭЙ ЯАХ ВЭ?</span>
+    <div id="ph-ch"></div><div id="ph-res"></div>
+  `;
+  const opts=[
+    {i:'🔗',t:'ХОЛБООСОНД ОРНО',ok:false},
+    {i:'🗑',t:'СЭЖИГТЭЙ — УСТГАЖ 1800-1111 ЗАЛГАНА',ok:true},
+    {i:'📤',t:'НАЙЗУУДТАЙГАА ХУВААЛЦАНА',ok:false},
+  ];
+  const ca=document.getElementById('ph-ch');
+  opts.forEach(o=>{
+    const b=document.createElement('button'); b.className='dlg-choice';
+    b.textContent=o.i+'  '+o.t;
+    b.onclick=()=>{
+      if(ans)return;ans=true;
+      b.className='dlg-choice '+(o.ok?'ok':'ng');
+      if(o.ok)earnPts(50,'ФИШИНГ ТАНЬЛАА');
+      const res=document.getElementById('ph-res');
+      res.className='px-result '+(o.ok?'ok':'ng');
+      res.textContent=o.ok?'✓ ЗӨВ! ФИШИНГ ХАЛДЛАГА. БАНК ХЭЗЭЭ Ч МЕССЕЖЭЭР НЭВТРЭХ МЭДЭЭЛЭЛ АСУУДАГГҮЙ!':'⚠ БОЛГООМЖТОЙ! ФИШИНГ. ДОМЭЙН .XYZ БУРУУ!';
+      const inf=document.createElement('div');
+      inf.className='px-info';inf.innerHTML='<b>ФИШИНГ ЯАЖ ТАНИХ ВЭ?</b>1. ЯАРАЛТАЙ БАЙДАЛ БИЙ БОЛГОДОГ 2. ДОМЭЙН БУРУУ (.XYZ) 3. БАНК SMS-ЭЭР НУУЦ МЭДЭЭЛЭЛ АСУУДАГГҮЙ';
+      res.after(inf);
+      setTimeout(closeMG,3500);
+    };
+    ca.appendChild(b);
+  });
+}
+
+// ── COMPARE ──
+function renderMGCompare(el) {
+  let chosen=false;
+  el.innerHTML=`
+    <div style="overflow-x:auto;margin-bottom:12px">
+      <table class="cmp-tbl">
+        <thead><tr><th style="color:#666">ШАЛГУУР</th><th>🏦 ТӨРИЙН БАНК</th><th>🌐 REVOLUT</th></tr></thead>
+        <tbody>
+          ${[
+            ['ГАДААД ШИЛЖҮҮЛГИЙН ХУГ.','<span class="badge y">2–5 ХОНОГ</span>','<span class="badge g">ТЭР ДАРГААР</span>'],
+            ['ШИМТГЭЛ','<span class="badge r">1–3%+₮15К</span>','<span class="badge g">€0 (ХЯЗГААР)</span>'],
+            ['ВАЛЮТЫН ХАНШ','<span class="badge y">БАНКНЫ</span>','<span class="badge g">ЗАХ ЗЭЭЛИЙН</span>'],
+            ['ОЛОН ВАЛЮТТ ДАНС','<span class="badge r">БАЙХГҮЙ</span>','<span class="badge g">30+ ВАЛЮТ</span>'],
+            ['МОНГОЛ ATM','<span class="badge g">ӨРГӨН</span>','<span class="badge r">БАЙХГҮЙ</span>'],
+            ['МОНГОЛ ХЭЛ','<span class="badge g">ТИЙМ</span>','<span class="badge r">ҮГҮЙ</span>'],
+          ].map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <span class="px-label">ТА АЛЬ АРГЫГ СОНГОХ ВЭ?</span>
+    <div id="cm-ch"></div><div id="cm-res"></div>
+  `;
+  const opts=[
+    {i:'🏦',t:'ЗӨВХӨН ТӨРИЙН БАНК',ok:false},
+    {i:'🌐',t:'ЗӨВХӨН REVOLUT',ok:false},
+    {i:'🤝',t:'ХОЁУЛАНГ ХОСЛУУЛНА (ДОТООД=ТБ, ГАДААД=REVOLUT)',ok:true},
+  ];
+  const ca=document.getElementById('cm-ch');
+  opts.forEach(o=>{
+    const b=document.createElement('button'); b.className='dlg-choice';
+    b.innerHTML=`${o.i}  ${o.t}`;
+    b.onclick=()=>{
+      if(chosen)return;chosen=true;
+      b.className='dlg-choice '+(o.ok?'ok':'ng');
+      ca.querySelectorAll('.dlg-choice').forEach((btn,i)=>{if(opts[i].ok)btn.className='dlg-choice ok';});
+      earnPts(o.ok?50:20,'ХАРЬЦУУЛАЛТ');
+      const res=document.getElementById('cm-res');
+      res.className='px-result '+(o.ok?'ok':'ng');
+      res.textContent=o.ok?'★ ГАЙХАЛТАЙ! ХОЁУЛАНГ ХОСЛУУЛАХ НЬ ХАМГИЙН УХААЛАГ!':'★ ХОЁУЛАНГ ХОСЛУУЛАХ НЬ ОНОВЧТОЙ!';
+      setTimeout(closeMG,3000);
+    };
+    ca.appendChild(b);
+  });
+}
+
+// ── CURRENCY ──
+function renderMGCurrency(el) {
+  const rate=3450; let paid=false;
+  el.innerHTML=`
+    <div class="px-card">
+      <div class="px-row"><span>🇪🇺 1 EUR =</span><span style="color:#FFD700;font-size:11px">₮${fmt(rate)}</span></div>
+      <div class="px-row"><span>ШИМТГЭЛ</span><span>1.5%</span></div>
+      <div class="px-row"><span>ҮЙЛЧИЛГЭЭНИЙ ХӨЛС</span><span>₮5,000</span></div>
+    </div>
+    <div style="margin-top:10px">
+      <span class="px-label">ХЭДЭН ЕВРО ХЭРЭГТЭЙ ВЭ?</span>
+      <input class="px-input" type="number" id="eu-in" value="1000" min="1" oninput="calcEU()">
+    </div>
+    <div class="px-card" id="eu-calc" style="margin-top:8px"></div>
+    <button class="px-btn gold" id="eu-btn" onclick="doEU()">💱 ВАЛЮТ АРИЛЖААЛАХ</button>
+    <div id="eu-res"></div>
+  `;
+  window.calcEU=()=>{
+    const e=+document.getElementById('eu-in').value||0;
+    const b=e*rate,f=b*0.015,s=5000,t=b+f+s;
+    document.getElementById('eu-calc').innerHTML=`
+      <div class="px-row"><span>ҮНДСЭН ДҮН</span><span>₮${fmt(Math.round(b))}</span></div>
+      <div class="px-row"><span>ШИМТГЭЛ 1.5%</span><span style="color:#ff5555">₮${fmt(Math.round(f))}</span></div>
+      <div class="px-row"><span>ҮЙЛЧ. ХӨЛС</span><span style="color:#ff5555">₮${fmt(s)}</span></div>
+      <div class="px-row ttl"><span>НИЙТ</span><span>₮${fmt(Math.round(t))}</span></div>
+    `;
+  };
+  window.calcEU();
+  window.doEU=()=>{
+    if(paid)return;
+    const e=+document.getElementById('eu-in').value||0;
+    const t=Math.round(e*rate*1.015+5000);
+    if(t>GS.balance){alert('ҮЛДЭГДЭЛ ХҮРЭЛЦЭХГҮЙ!');return;}
+    paid=true;GS.balance-=t;updateHUD();earnPts(40,'ВАЛЮТ АРИЛЖАА');
+    const res=document.getElementById('eu-res');
+    res.className='px-result ok';res.textContent=`✓ €${e} ЕВРО АВЛАА! ₮${fmt(t)} ЗАРЦУУЛАГДЛАА.`;
+    document.getElementById('eu-btn').disabled=true;setTimeout(closeMG,2500);
+  };
+}
+
+// ── INVEST ──
+function renderMGInvest(el) {
+  const prods=[
+    {e:'🏠',n:'"ОРОН СУУЦ" ХАДГАЛАМЖ',r:10.5,risk:'БАГА ЭРСДЭЛ',rc:'#50fa7b',yrs:5,ok:true},
+    {e:'📊',n:'ХАМТЫН ХӨРӨНГӨ ОРУУЛАЛТ',r:15,risk:'ДУНД ЭРСДЭЛ',rc:'#FFD700',yrs:3,ok:false},
+    {e:'📈',n:'ХУВЬЦАА (MSX)',r:25,risk:'ӨНДӨР ЭРСДЭЛ',rc:'#ff5555',yrs:5,ok:false},
+  ];
+  let sel=null;
+  el.innerHTML=`
+    <span class="px-label">₮100,000 ХӨРӨНГӨӨ БАЙРШУУЛАХ</span>
+    <div id="inv-opts"></div>
+    <div id="inv-chart" style="display:none"></div>
+    <div id="inv-res"></div>
+  `;
+  const ca=document.getElementById('inv-opts');
+  prods.forEach((p,i)=>{
+    const d=document.createElement('div'); d.className='inv-opt';
+    d.innerHTML=`<div style="font-size:24px">${p.e}</div><div style="font-size:9px;color:#ddd;margin:4px 0">${p.n}</div><div style="font-size:16px;color:#50fa7b;font-weight:bold">${p.r}%</div><div style="font-size:7px;color:${p.rc};margin-top:3px">${p.risk}</div><div style="font-size:7px;color:#555">${p.yrs} ЖИЛ</div>`;
+    d.onclick=()=>{
+      if(sel!==null)return;sel=i;
+      document.querySelectorAll('.inv-opt').forEach((c,j)=>c.className='inv-opt'+(j===i?' sel':''));
+      const end=Math.round(100000*Math.pow(1+p.r/100,p.yrs));
+      // mini bar chart
+      const ch=document.getElementById('inv-chart');
+      ch.style.display='block';
+      const vals=Array.from({length:p.yrs+1},(_,y)=>Math.round(100000*Math.pow(1+p.r/100,y)));
+      const mx=vals[vals.length-1];
+      ch.innerHTML=`<span class="px-label">₮100,000-ИЙН ӨСӨЛТ</span><div style="display:flex;align-items:flex-end;gap:3px;height:60px;margin-bottom:4px">${vals.map((v,y)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px"><div style="font-size:6px;color:#6495ED">${Math.round(v/1000)}К</div><div style="width:100%;background:${p.rc};height:${Math.max(4,Math.round(v/mx*46))}px"></div><div style="font-size:6px;color:#555">${y}Ж</div></div>`).join('')}</div>`;
+      const res=document.getElementById('inv-res');
+      const msgs={10.5:`✓ АЮУЛГҮЙ! ${p.yrs}Ж-Д ₮${fmt(end)} БОЛНО.`,15:`★ ДУНД ЭРСДЭЛ. ₮${fmt(end)} БОЛЖ БОЛНО.`,25:`⚠ ӨНДӨР ЭРСДЭЛ. ₮${fmt(end)} БОЛЖ БОЛОХ Ч АЛДАХ МАГАДЛАЛ БИЙ!`};
+      res.className='px-result '+(p.ok?'ok':'ng');res.textContent=msgs[p.r];
+      earnPts(p.ok?40:p.r===15?35:25,'ХӨРӨНГӨ ОРУУЛАЛТ');
+      setTimeout(closeMG,3500);
+    };
+    ca.appendChild(d);
+  });
+}
+
+// ── LOAN ──
+function renderMGLoan(el) {
+  let done=false;
+  el.innerHTML=`
+    <div class="px-card">
+      <div class="px-row"><span>ЗЭЭЛИЙН ХЭМЖЭЭ</span><select class="px-select" id="ln-a" onchange="calcLN()" style="width:auto;padding:4px 8px"><option value="30000000">₮30 САЯ</option><option value="50000000" selected>₮50 САЯ</option><option value="80000000">₮80 САЯ</option></select></div>
+      <div class="px-row"><span>ХУГАЦАА</span><select class="px-select" id="ln-y" onchange="calcLN()" style="width:auto;padding:4px 8px"><option value="10">10 ЖИЛ</option><option value="15">15 ЖИЛ</option><option value="20" selected>20 ЖИЛ</option></select></div>
+      <div class="px-row"><span>ЖИЛИЙН ХҮҮ</span><select class="px-select" id="ln-r" onchange="calcLN()" style="width:auto;padding:4px 8px"><option value="14">"ОС" 14%</option><option value="16">ЭНГИЙН 16%</option><option value="18">ТЭРГ. 18%</option></select></div>
+      <div class="px-row"><span>УРЬДЧИЛГАА</span><select class="px-select" id="ln-d" onchange="calcLN()" style="width:auto;padding:4px 8px"><option value="10">10%</option><option value="20" selected>20%</option><option value="30">30%</option></select></div>
+    </div>
+    <div class="px-card" id="ln-res" style="margin-top:8px"></div>
+    <button class="px-btn gold" id="ln-btn" onclick="applyLN()">★ ӨРГӨДӨЛ ГАРГАХ</button>
+    <div id="ln-fb"></div>
+  `;
+  window.calcLN=()=>{
+    const a=+document.getElementById('ln-a').value;
+    const y=+document.getElementById('ln-y').value;
+    const r=+document.getElementById('ln-r').value/100/12;
+    const d=+document.getElementById('ln-d').value/100;
+    const p=a*(1-d),n=y*12;
+    const m=p*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+    const tot=m*n;
+    document.getElementById('ln-res').innerHTML=`
+      <div class="px-row"><span>ЗЭЭЛИЙН ДҮН</span><span style="color:#6495ED">₮${fmt(Math.round(p))}</span></div>
+      <div class="px-row"><span>НИЙТ ХҮҮГИЙН ДҮН</span><span style="color:#ff5555">₮${fmt(Math.round(tot-p))}</span></div>
+      <div class="px-row ttl"><span>САРЫН ТӨЛБӨР</span><span>₮${fmt(Math.round(m))}</span></div>
+    `;
+  };
+  window.calcLN();
+  window.applyLN=()=>{
+    if(done)return;done=true;earnPts(50,'ЗЭЭЛИЙН ӨРГӨДӨЛ');
+    const fb=document.getElementById('ln-fb');
+    fb.className='px-result ok';fb.textContent='★ ЗЭЭЛИЙН ӨРГӨДӨЛ ХҮЛЭЭН АВЛАА! 5 АЖЛЫН ӨДРИЙН ДОТОР ШИЙДВЭРЛЭНЭ.';
+    const inf=document.createElement('div');inf.className='px-info';
+    inf.innerHTML='<b>ЗӨВЛӨГӨӨ</b>УРЬДЧИЛГАА ИХ БАЙХ ТУСАМ САРЫН ТӨЛБӨР БАГА. ЭРТ ЭХЭЛЖ ХУГАЦААГ БОГИНОСГОХ НЬ НИЙТ ХҮҮГИЙН ДҮНГ БУУРУУЛНА.';
+    fb.after(inf);
+    document.getElementById('ln-btn').disabled=true;setTimeout(closeMG,3500);
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+//  LEVEL COMPLETE / GAME FLOW
+// ═══════════════════════════════════════════════════════
+function doLevelComplete() {
+  if (GS.phase === 'lc') return;
+  GS.done.add(GS.lvl);
+  GS.phase = 'lc';
+  const lv = LEVELS[GS.lvl];
+  document.getElementById('lc-em').textContent = lv.emoji;
+  document.getElementById('lc-h').textContent = `ҮЕ ${lv.id} ДУУССАН!`;
+  document.getElementById('lc-s').textContent = lv.name;
+  document.getElementById('lc-pts').textContent = GS.pts;
+  const lessons = [
+    'ХАРИЛЦАХ ДАНС + ДЕБИТ КАРТ',
+    'МОБАЙЛ БАНК + КИБЕР АЮУЛГҮЙ БАЙДАЛ',
+    'ОЛОН УЛС ГҮЙЛГЭЭ + ФИНТЕК',
+    'ХӨРӨНГӨ ОРУУЛАЛТ + ЗЭЭЛ',
+  ];
+  document.getElementById('lc-box').innerHTML =
+    `<div style="font-size:7px;color:#6495ED;margin-bottom:8px">★ СУРАЛЦСАН:</div>` +
+    lessons.slice(0, lv.id).map(l => `<div class="lc-item"><span style="color:#50fa7b">✓</span><span>${l}</span></div>`).join('');
+  const nb = document.getElementById('lc-next');
+  if (GS.lvl >= LEVELS.length - 1) {
+    nb.textContent = '★ ДУУСГАХ'; nb.onclick = showFinalComplete;
+  } else {
+    nb.textContent = `ҮЕ ${GS.lvl + 2} ▶`; nb.onclick = goNext;
+  }
+  document.getElementById('lc').style.display = 'flex';
+}
+
+function showFinalComplete() {
+  GS.done.add(GS.lvl); GS.phase = 'lc';
+  document.getElementById('lc-em').textContent = '🏆';
+  document.getElementById('lc-h').textContent = 'БАЯР ХҮРГЭЕ!';
+  document.getElementById('lc-s').textContent = 'САНХҮҮГИЙН МАСТЕР БОЛЛОО!';
+  document.getElementById('lc-pts').textContent = GS.pts;
+  const rank = GS.pts >= 350 ? '★★★ МАСТЕР' : GS.pts >= 250 ? '★★ МЭРГЭЖИЛТЭН' : GS.pts >= 150 ? '★ СУРАЛЦАГЧ' : '○ ЭХЛЭГЧ';
+  document.getElementById('lc-box').innerHTML = `
+    <div style="font-size:9px;color:#FFD700;margin-bottom:10px">${rank}</div>
+    ${['💳 ХАРИЛЦАХ ДАНС, ДЕБИТ КАРТ','📊 САРЫН ТӨСӨВЛӨЛТ','📱 МОБАЙЛ БАНК, ФИШИНГ','🌍 ОЛОН УЛС ГҮЙЛГЭЭ','💱 ВАЛЮТ АРИЛЖАА','📈 НИЙЛМЭЛ ХҮҮ','🏠 ЗЭЭЛИЙН ТООЦОО'].map(l=>`<div class="lc-item"><span style="color:#50fa7b">★</span><span>${l}</span></div>`).join('')}
+  `;
+  document.getElementById('lc-next').textContent = '★ ДАХИН ТОГЛОХ';
+  document.getElementById('lc-next').onclick = restartGame;
+  document.getElementById('lc').style.display = 'flex';
+}
+
+window.goMap = function() {
+  document.getElementById('lc').style.display = 'none';
+  renderMap();
+  document.getElementById('map-screen').style.display = 'flex';
+  GS.phase = 'map';
+};
+
+window.goNext = function() {
+  document.getElementById('lc').style.display = 'none';
+  const next = GS.lvl + 1;
+  if (next >= LEVELS.length) { showFinalComplete(); return; }
+  loadLevel(next);
+};
+
+function loadLevel(idx) {
+  GS.lvl = idx; GS.phase = 'playing';
+  plr.wx = 80; camX = 0;
+  npcTalkCooldown = {};
+  document.getElementById('lc').style.display = 'none';
+  document.getElementById('map-screen').style.display = 'none';
+  document.getElementById('hud-lvbadge').textContent = `ҮЕ ${idx + 1}`;
+  updateHUD();
+  toast(`▶ ҮЕ ${idx + 1} — ${LEVELS[idx].name}`);
+}
+
+function restartGame() {
+  GS.balance = 500000; GS.pts = 0; GS.done.clear();
+  document.getElementById('lc').style.display = 'none';
+  updateHUD();
+  loadLevel(0);
+}
+
+function renderMap() {
+  const g = document.getElementById('map-grid');
+  g.innerHTML = LEVELS.map((lv, i) => {
+    const done = GS.done.has(i);
+    const locked = i > 0 && !GS.done.has(i - 1);
+    return `<div class="map-cell ${done?'done':''} ${locked?'lock':''}" onclick="${locked?`alert('ӨМНӨХ ҮЕЭ ДУУСГААРАЙ!')`:('mapGo('+i+')')}">
+      <div class="map-emoji">${lv.emoji}</div>
+      <div class="map-num">ҮЕ ${lv.id}</div>
+      <div class="map-name">${lv.name}</div>
+      <div class="map-stat" style="color:${done?'#50fa7b':locked?'#333':'#6495ED'}">${done?'✓ ДУУССАН':locked?'🔒 ТҮГЖИГДСЭН':'▶ ТОГЛОХ'}</div>
+    </div>`;
+  }).join('');
+}
+
+window.mapGo = function(i) {
+  document.getElementById('map-screen').style.display = 'none';
+  loadLevel(i);
+};
+
+// ═══════════════════════════════════════════════════════
+//  TITLE SCREEN
+// ═══════════════════════════════════════════════════════
+// Starfield animation
+let stars = Array.from({ length: 120 }, () => ({
+  x: Math.random() * window.innerWidth,
+  y: Math.random() * window.innerHeight,
+  r: Math.random() * 1.5 + 0.3,
+  speed: Math.random() * 0.4 + 0.1,
+  brightness: Math.random(),
+}));
+
+function animTitle() {
+  if (GS.phase !== 'title') return;
+  tc.width = window.innerWidth; tc.height = window.innerHeight;
+  tctx.fillStyle = '#050510';
+  tctx.fillRect(0, 0, tc.width, tc.height);
+
+  // Pixel grid
+  tctx.fillStyle = 'rgba(100,149,237,0.03)';
+  for (let x = 0; x < tc.width; x += 16) tctx.fillRect(x, 0, 1, tc.height);
+  for (let y = 0; y < tc.height; y += 16) tctx.fillRect(0, y, tc.width, 1);
+
+  // Stars
+  stars.forEach(s => {
+    s.y += s.speed;
+    if (s.y > tc.height) { s.y = 0; s.x = Math.random() * tc.width; }
+    s.brightness = Math.sin(Date.now() * 0.001 + s.x) * 0.4 + 0.6;
+    tctx.fillStyle = `rgba(255,255,255,${s.brightness * 0.7})`;
+    tctx.fillRect(Math.round(s.x), Math.round(s.y), Math.ceil(s.r), Math.ceil(s.r));
+  });
+
+  // Pixel border
+  tctx.strokeStyle = 'rgba(100,149,237,0.3)';
+  tctx.lineWidth = 2;
+  tctx.strokeRect(8, 8, tc.width - 16, tc.height - 16);
+
+  requestAnimationFrame(animTitle);
+}
+
+// Draw avatar previews
+function drawAvatarPreviews() {
+  for (let i = 0; i < 4; i++) {
+    drawAvatarPreview(document.getElementById(`av${i}`), i);
+  }
+}
+
+window.selAv = function(i) {
+  GS.av = i;
+  document.querySelectorAll('.av-opt').forEach((el, j) => {
+    el.className = 'av-opt' + (j === i ? ' sel' : '');
+  });
+};
+
+window.startGame = function() {
+  GS.phase = 'playing';
+  document.getElementById('title').style.display = 'none';
+  document.getElementById('ctrl').style.display = 'flex';
+  document.getElementById('hud').style.display = 'flex';
+  loadLevel(0);
+};
+
+// ═══════════════════════════════════════════════════════
+//  INPUT
+// ═══════════════════════════════════════════════════════
+document.getElementById('dp-l').addEventListener('touchstart', e => { e.preventDefault(); inp.left = true; document.getElementById('dp-l').classList.add('on'); }, { passive: false });
+document.getElementById('dp-l').addEventListener('touchend', e => { e.preventDefault(); inp.left = false; document.getElementById('dp-l').classList.remove('on'); }, { passive: false });
+document.getElementById('dp-r').addEventListener('touchstart', e => { e.preventDefault(); inp.right = true; document.getElementById('dp-r').classList.add('on'); }, { passive: false });
+document.getElementById('dp-r').addEventListener('touchend', e => { e.preventDefault(); inp.right = false; document.getElementById('dp-r').classList.remove('on'); }, { passive: false });
+
+document.getElementById('abtn-a').addEventListener('click', interact);
+document.getElementById('abtn-b').addEventListener('click', () => {
+  if (GS.phase === 'playing') {
+    renderMap(); document.getElementById('map-screen').style.display = 'flex'; GS.phase = 'map';
+  } else if (GS.phase === 'map') {
+    document.getElementById('map-screen').style.display = 'none'; GS.phase = 'playing';
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft' || e.key === 'a') inp.left = true;
+  if (e.key === 'ArrowRight' || e.key === 'd') inp.right = true;
+  if (e.key === ' ' || e.key === 'Enter') interact();
+  if (e.key === 'm' || e.key === 'M') document.getElementById('abtn-b').click();
+});
+document.addEventListener('keyup', e => {
+  if (e.key === 'ArrowLeft' || e.key === 'a') inp.left = false;
+  if (e.key === 'ArrowRight' || e.key === 'd') inp.right = false;
+});
+
+document.getElementById('dlg').addEventListener('click', e => {
+  if (e.target.tagName === 'BUTTON') return;
+  advDlg();
+});
+
+document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+document.getElementById('dlg').addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
+document.getElementById('mg-sheet').addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
+document.getElementById('map-screen').addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
+document.getElementById('lc').addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
+
+// ═══════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════
+function fmt(n) { return new Intl.NumberFormat('mn-MN').format(n); }
+function earnPts(n, label) { GS.pts += n; updateHUD(); toast(`+${n} ★ ${label}`); }
+function updateHUD() {
+  document.getElementById('h-bal').textContent = `₮${fmt(GS.balance)}`;
+  document.getElementById('h-pts').textContent = GS.pts;
+}
+function toast(msg) {
+  const t = document.createElement('div'); t.className = 'px-toast'; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2300);
+}
+
+// ═══════════════════════════════════════════════════════
+//  GAME LOOP
+// ═══════════════════════════════════════════════════════
+function loop() {
+  render();
+  requestAnimationFrame(loop);
+}
+
+// INIT
+drawAvatarPreviews();
+animTitle();
+loop();
+</script>
+</body>
 </html>
