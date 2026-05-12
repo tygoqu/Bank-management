@@ -4,12 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Bank Quest – Pixel Edition</title>
+<title>Bank Quest – Slate Edition</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:none;}
-html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Press Start 2P',monospace;}
+html,body{width:100%;height:100%;overflow:hidden;background:#1e293b;font-family:'Press Start 2P',monospace;}
+
+/* ── CRT OVERLAY (ЦАЙВАР БОЛГАСАН) ── */
+body::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: linear-gradient(rgba(15, 23, 42, 0) 50%, rgba(0, 0, 0, 0.08) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
+  z-index: 999;
+  box-shadow: inset 0 0 80px rgba(0,0,0,0.35);
+}
+
 #c{display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
+#game-container { transition: transform 0.05s; }
 
 /* ── PIXEL UI OVERLAY ── */
 #ui{position:fixed;inset:0;pointer-events:none;z-index:10;}
@@ -17,273 +31,287 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Pr
 /* HUD */
 #hud{
   position:fixed;top:0;left:0;right:0;
-  background:rgba(0,0,0,0.85);
-  border-bottom:2px solid #FFD700;
-  padding:6px 10px;
-  display:none;align-items:center;gap:8px;
+  background:linear-gradient(to bottom, rgba(15,23,42,0.9), rgba(15,23,42,0.5));
+  border-bottom:3px solid #FFD700;
+  padding:12px 16px;
+  display:none;align-items:center;gap:12px;
   flex-wrap:wrap;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  transform: translateY(-100%);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+#hud.visible { transform: translateY(0); }
+
 .hud-chip{
-  background:#0a0a1a;border:2px solid #333;
-  padding:4px 8px;font-size:8px;color:#aaa;
-  display:flex;align-items:center;gap:5px;
+  background:#0f172a;border:3px solid #334155;
+  padding:12px 16px;font-size:14px;color:#cbd5e1;
+  display:flex;align-items:center;gap:8px;
   image-rendering:pixelated;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+  border-radius: 8px;
 }
-.hud-chip .v{color:#FFD700;}
-#hud-lvbadge{margin-left:auto;background:#0a0a1a;border:2px solid #FFD700;padding:4px 8px;font-size:8px;color:#FFD700;}
+.hud-chip .v{color:#FFD700; text-shadow: 0 0 8px rgba(255,215,0,0.6);}
+#hud-lvbadge{
+    margin-left:auto;background:#1e293b;border:3px solid #FFD700;
+    padding:12px 16px;font-size:12px;color:#FFD700;
+    border-radius: 8px;
+    animation: pulseGlow 2s infinite;
+}
+@keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 5px #FFD70055; } 50% { box-shadow: 0 0 15px #FFD700aa; } }
 
 /* DIALOG BOX */
 #dlg{
-  position:fixed;bottom:0;left:0;right:0;
-  background:#0a0a1a;
-  border-top:3px solid #FFD700;
-  border-left:none;border-right:none;
+  position:fixed;bottom:15px;left:50%; width: 96%; max-width: 650px;
+  transform:translate(-50%, 120%);
+  background:rgba(15, 23, 42, 0.95);
+  border:4px solid #FFD700;
+  border-radius: 12px;
   padding:0;
-  transform:translateY(100%);
-  transition:transform 0.2s steps(4);
+  transition:transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   z-index:50;pointer-events:all;
-  max-height:52vh;display:flex;flex-direction:column;
+  max-height:60vh;display:flex;flex-direction:column;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.6), inset 0 0 30px rgba(0,0,0,0.4);
+  backdrop-filter: blur(12px);
 }
-#dlg.open{transform:translateY(0);}
-#dlg-inner{display:flex;gap:10px;padding:12px 12px 8px;align-items:flex-start;border-bottom:2px solid #222;}
-#dlg-face{
-  width:48px;height:48px;flex-shrink:0;
-  border:2px solid #FFD700;background:#111;
-  image-rendering:pixelated;
+#dlg.open{transform:translate(-50%, 0);}
+#dlg-inner{display:flex;gap:16px;padding:20px;align-items:flex-start;border-bottom:3px solid #334155;}
+#dlg-face-container {
+    width:85px;height:85px;flex-shrink:0;
+    border:3px solid #FFD700;background:#0f172a;
+    position: relative; overflow: hidden; border-radius: 8px;
+    box-shadow: 0 0 15px #FFD70055;
 }
-#dlg-name{font-size:7px;color:#FFD700;margin-bottom:6px;letter-spacing:1px;}
-#dlg-text{font-size:8px;color:#e0e0e0;line-height:1.8;flex:1;}
-#dlg-cont{font-size:7px;color:#888;padding:6px 12px;text-align:right;animation:blink 1s steps(1) infinite;}
+#dlg-face{ width: 100%; height: 100%; image-rendering:pixelated; }
+#dlg-name{font-size:13px;color:#FFD700;margin-bottom:12px;letter-spacing:1px; text-shadow: 2px 2px 0 #000;}
+#dlg-text{font-size:14px;color:#e2e8f0;line-height:1.8;flex:1; text-shadow: 1px 1px 0 #000;}
+#dlg-cont{font-size:11px;color:#94a3b8;padding:12px 20px;text-align:right;animation:blink 1s steps(1) infinite;}
 @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
 #dlg-choices{display:flex;flex-direction:column;gap:0;overflow-y:auto;}
 .dlg-choice{
-  background:#0a0a1a;border:none;border-top:1px solid #222;
-  padding:10px 14px;color:#ccc;font-family:'Press Start 2P',monospace;
-  font-size:8px;text-align:left;cursor:pointer;
-  display:flex;align-items:center;gap:8px;line-height:1.6;
-  transition:background 0.05s;
+  background:transparent;border:none;border-top:2px solid #334155;
+  padding:20px 22px;color:#cbd5e1;font-family:'Press Start 2P',monospace;
+  font-size:12px;text-align:left;cursor:pointer;
+  display:flex;align-items:center;gap:12px;line-height:1.6;
+  transition:all 0.15s;
 }
-.dlg-choice:active,.dlg-choice:hover{background:#1a1a2e;color:#FFD700;}
-.dlg-choice.ok{color:#50fa7b;}
-.dlg-choice.ng{color:#ff5555;}
+.dlg-choice:active,.dlg-choice:hover{background:#334155;color:#FFD700; padding-left: 30px;}
+.dlg-choice.ok{color:#50fa7b; background: rgba(80, 250, 123, 0.15);}
+.dlg-choice.ng{color:#ff5555; background: rgba(255, 85, 85, 0.15);}
 
-/* CONTROLS */
+/* CONTROLS (ТОМРУУЛСАН) */
 #ctrl{
   position:fixed;bottom:0;left:0;right:0;
   display:none;justify-content:space-between;align-items:flex-end;
-  padding:0 16px 20px;pointer-events:all;z-index:40;
+  padding:0 25px 35px;pointer-events:all;z-index:40;
 }
-.dpad{display:grid;grid-template-columns:48px 48px;gap:5px;}
+.dpad{display:grid;grid-template-columns:85px 85px;gap:16px;}
 .dpb{
-  width:48px;height:48px;
-  background:rgba(255,255,255,0.08);
-  border:2px solid rgba(255,255,255,0.2);
-  border-radius:6px;
+  width:85px;height:85px;
+  background:rgba(255,255,255,0.15);
+  border:4px solid rgba(255,255,255,0.4);
+  border-radius:20px;
   display:flex;align-items:center;justify-content:center;
-  font-size:20px;cursor:pointer;user-select:none;
-  transition:background 0.05s;
+  font-size:38px;cursor:pointer;user-select:none;
+  transition:all 0.1s;
   -webkit-appearance:none;
+  box-shadow: 0 8px 0 rgba(0,0,0,0.4), inset 0 2px 10px rgba(255,255,255,0.2);
+  backdrop-filter: blur(5px);
 }
-.dpb:active,.dpb.on{background:rgba(255,255,255,0.25);border-color:rgba(255,255,255,0.6);}
+.dpb:active,.dpb.on{
+    background:rgba(255,255,255,0.35);border-color:rgba(255,255,255,0.9);
+    transform: translateY(8px); box-shadow: 0 0 0 rgba(0,0,0,0), inset 0 4px 15px rgba(0,0,0,0.4);
+}
 .abtn{
-  width:54px;height:54px;border-radius:50%;
+  border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-size:20px;cursor:pointer;user-select:none;
+  cursor:pointer;user-select:none;
   -webkit-appearance:none;font-family:'Press Start 2P',monospace;
-  font-size:10px;font-weight:bold;
-  transition:transform 0.05s;
+  font-weight:bold;
+  transition:all 0.1s;
 }
-.abtn:active{transform:scale(0.9);}
-#abtn-a{background:rgba(255,215,0,0.2);border:2px solid #FFD700;color:#FFD700;}
-#abtn-b{background:rgba(100,149,237,0.2);border:2px solid #6495ED;color:#6495ED;font-size:9px;}
+#abtn-a{
+    width:90px;height:90px;font-size:20px;
+    background:linear-gradient(#64748b, #334155);border:5px solid #FFD700;color:#FFD700;
+    box-shadow: 0 10px 0 #aa8800, 0 15px 25px rgba(0,0,0,0.6);
+}
+#abtn-a:active { transform: translateY(10px); box-shadow: 0 0 0 #aa8800, 0 4px 10px rgba(0,0,0,0.8); }
+#abtn-b{
+    width: 75px; height: 75px; font-size: 13px; margin-right: 20px; margin-bottom: 5px;
+    background:linear-gradient(#475569, #1e293b);border:4px solid #6495ED;color:#6495ED;
+    box-shadow: 0 8px 0 #3355aa, 0 12px 20px rgba(0,0,0,0.6);
+}
+#abtn-b:active { transform: translateY(8px); box-shadow: 0 0 0 #3355aa, 0 3px 8px rgba(0,0,0,0.8); }
 
 /* MINIGAME SHEET */
 #mg-sheet{
   position:fixed;inset:0;z-index:60;
-  background:#050510;
-  border-top:3px solid #6495ED;
+  background:rgba(15, 23, 42, 0.98);
+  border-top:6px solid #6495ED;
   overflow-y:auto;
   transform:translateY(100%);
-  transition:transform 0.25s steps(5);
+  transition:transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   pointer-events:all;
+  backdrop-filter: blur(15px);
 }
 #mg-sheet.open{transform:translateY(0);}
 #mg-hdr{
   position:sticky;top:0;
-  background:#050510;border-bottom:2px solid #333;
-  padding:10px 12px;display:flex;align-items:center;gap:8px;
-  z-index:2;
+  background:linear-gradient(#1e293b, #0f172a);border-bottom:3px solid #334155;
+  padding:20px 24px;display:flex;align-items:center;gap:16px;
+  z-index:2; box-shadow: 0 8px 25px rgba(0,0,0,0.6);
 }
-#mg-title{font-size:9px;color:#FFD700;flex:1;}
-#mg-sub{font-size:7px;color:#888;margin-top:3px;}
+#mg-title{font-size:15px;color:#FFD700;flex:1; text-shadow: 0 0 15px #FFD70055;}
+#mg-sub{font-size:11px;color:#94a3b8;margin-top:10px; line-height: 1.5;}
 #mg-close{
-  background:#0a0a1a;border:2px solid #555;
-  color:#aaa;font-family:'Press Start 2P',monospace;
-  font-size:8px;padding:6px 10px;cursor:pointer;
+  background:#0f172a;border:3px solid #475569;
+  color:#cbd5e1;font-family:'Press Start 2P',monospace;
+  font-size:12px;padding:16px 20px;cursor:pointer;
+  transition: all 0.1s; border-radius: 8px;
 }
-#mg-close:active{background:#222;}
-#mg-body{padding:14px;}
+#mg-close:active{background:#334155; transform: scale(0.95);}
+#mg-body{padding:25px; max-width: 700px; margin: 0 auto;}
 
 /* MG UI COMPONENTS */
-.px-label{font-size:7px;color:#6495ED;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;display:block;}
-.px-card{background:#0d0d1a;border:2px solid #222;padding:12px;margin-bottom:10px;}
-.px-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a1a1a;font-size:8px;color:#aaa;}
+.px-label{font-size:12px;color:#6495ED;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;display:block;}
+.px-card{background:linear-gradient(135deg, #1e293b, #0f172a);border:3px solid #334155;padding:22px;margin-bottom:18px; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.5);}
+.px-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:2px dashed #334155;font-size:12px;color:#cbd5e1;}
 .px-row:last-child{border:none;}
-.px-row.ttl{color:#FFD700;font-size:9px;border-top:1px solid #333;padding-top:8px;}
+.px-row.ttl{color:#FFD700;font-size:14px;border-top:3px solid #475569;padding-top:18px;}
 .px-input{
-  width:100%;background:#080812;border:2px solid #333;
-  color:#e0e0e0;font-family:'Press Start 2P',monospace;
-  font-size:8px;padding:10px;
+  width:100%;background:#0f172a;border:3px solid #475569;
+  color:#fff;font-family:'Press Start 2P',monospace;
+  font-size:13px;padding:18px; border-radius: 8px;
+  transition: border-color 0.2s;
 }
-.px-input:focus{outline:none;border-color:#6495ED;}
-.px-input::placeholder{color:#333;}
+.px-input:focus{outline:none;border-color:#6495ED; box-shadow: 0 0 15px rgba(100,149,237,0.4);}
 .px-select{
-  width:100%;background:#080812;border:2px solid #333;
-  color:#e0e0e0;font-family:'Press Start 2P',monospace;
-  font-size:7px;padding:8px;-webkit-appearance:none;
+  width:100%;background:#0f172a;border:3px solid #475569;
+  color:#fff;font-family:'Press Start 2P',monospace;
+  font-size:12px;padding:16px;-webkit-appearance:none; border-radius: 8px;
 }
 .px-btn{
-  width:100%;background:#0d1a3d;border:2px solid #6495ED;
+  width:100%;background:linear-gradient(#334155, #1e293b);border:3px solid #6495ED;
   color:#6495ED;font-family:'Press Start 2P',monospace;
-  font-size:8px;padding:12px;cursor:pointer;margin-top:10px;
-  text-transform:uppercase;letter-spacing:1px;
+  font-size:15px;padding:22px;cursor:pointer;margin-top:18px;
+  text-transform:uppercase;letter-spacing:2px;
+  border-radius: 10px; transition: all 0.1s;
+  box-shadow: 0 8px 0 #0f172a;
 }
-.px-btn:active{background:#1a2a5a;}
-.px-btn.gold{background:#1a1200;border-color:#FFD700;color:#FFD700;}
-.px-btn.gold:active{background:#2a2000;}
-.px-btn.grn{background:#001a08;border-color:#50fa7b;color:#50fa7b;}
-.px-result{padding:12px;margin-top:8px;font-size:8px;line-height:1.8;}
-.px-result.ok{background:#001a08;border:2px solid #50fa7b;color:#50fa7b;}
-.px-result.ng{background:#1a0000;border:2px solid #ff5555;color:#ff5555;}
-.px-info{background:#050518;border:2px solid #2a2a4a;padding:12px;margin-top:8px;font-size:7px;color:#8888cc;line-height:1.8;}
-.px-info b{color:#6495ED;display:block;margin-bottom:5px;font-size:7px;}
-.badge{display:inline-block;padding:2px 6px;font-size:7px;border:1px solid;}
-.badge.g{border-color:#50fa7b;color:#50fa7b;background:#001a08;}
-.badge.r{border-color:#ff5555;color:#ff5555;background:#1a0000;}
-.badge.y{border-color:#FFD700;color:#FFD700;background:#1a1200;}
-.inv-opt{
-  background:#0d0d1a;border:2px solid #222;
-  padding:12px;margin-bottom:8px;cursor:pointer;
-  text-align:center;
-}
-.inv-opt:active,.inv-opt.sel{background:#0a1030;border-color:#6495ED;}
-.budget-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
-.budget-row label{font-size:7px;color:#aaa;min-width:80px;}
-.budget-row input[type=range]{flex:1;-webkit-appearance:none;height:3px;background:#222;outline:none;}
-.budget-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:#6495ED;cursor:pointer;}
-.budget-row .bv{font-size:7px;color:#6495ED;min-width:75px;text-align:right;}
-.phone-wrap{background:#050510;border:2px solid #444;max-width:260px;margin:0 auto;}
-.phone-bar{background:#0a0a0a;padding:5px 10px;display:flex;justify-content:space-between;font-size:6px;color:#666;}
-.phone-hdr{background:#0d1a3d;border-bottom:2px solid #333;padding:8px 10px;font-size:8px;color:#6495ED;}
-.phone-body{padding:10px;}
-.phone-bal{background:#080820;border:1px solid #2a2a4a;padding:10px;text-align:center;margin-bottom:10px;}
-.phone-bal-l{font-size:6px;color:#6495ED;margin-bottom:4px;}
-.phone-bal-v{font-size:16px;color:#6495ED;}
-.phone-inp{width:100%;background:#050510;border:1px solid #333;color:#ddd;font-family:'Press Start 2P',monospace;font-size:7px;padding:7px;margin-bottom:6px;}
-.phone-btn{width:100%;background:#0d1a3d;border:1px solid #6495ED;color:#6495ED;font-family:'Press Start 2P',monospace;font-size:7px;padding:8px;cursor:pointer;margin-bottom:5px;}
-.phone-btn.g{background:#001a08;border-color:#50fa7b;color:#50fa7b;}
-.tx-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #111;font-size:7px;color:#888;}
-.tx-p{color:#50fa7b;font-weight:bold;}
-.tx-n{color:#ff5555;font-weight:bold;}
-.cmp-tbl{width:100%;border-collapse:collapse;font-size:7px;}
-.cmp-tbl th{padding:6px 4px;font-size:6px;border-bottom:1px solid #222;}
-.cmp-tbl th:nth-child(2){color:#6495ED;}
-.cmp-tbl th:nth-child(3){color:#bd93f9;}
-.cmp-tbl td{padding:5px 4px;border-bottom:1px solid #111;color:#888;vertical-align:top;line-height:1.6;}
-.sl-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.px-btn:active{transform: translateY(8px); box-shadow: 0 0 0 #0f172a;}
+.px-btn.gold{background:linear-gradient(#3f3200, #2a2000);border-color:#FFD700;color:#FFD700; box-shadow: 0 8px 0 #1a1200;}
+.px-btn.gold:active{transform: translateY(8px); box-shadow: 0 0 0 #1a1200;}
+.px-result{padding:20px;margin-top:18px;font-size:12px;line-height:1.8; border-radius: 8px; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+@keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.px-result.ok{background:rgba(0,26,8,0.8);border:3px solid #50fa7b;color:#50fa7b;}
+.px-result.ng{background:rgba(26,0,0,0.8);border:3px solid #ff5555;color:#ff5555;}
+.px-info{background:rgba(30,41,59,0.8);border:3px solid #475569;padding:20px;margin-top:14px;font-size:11px;color:#93c5fd;line-height:1.8; border-radius: 8px;}
 
-/* TITLE */
+/* TITLE SCREEN */
 #title{
   position:fixed;inset:0;z-index:100;
-  background:#050510;
+  background:#1e293b;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:20px;
+  padding:25px;
   overflow:hidden;
 }
-#title-canvas{position:absolute;inset:0;}
-.t-content{position:relative;z-index:1;text-align:center;width:100%;max-width:360px;}
-.t-bank{font-size:8px;color:#6495ED;letter-spacing:3px;margin-bottom:14px;}
-.t-logo{font-size:clamp(28px,8vw,48px);color:#fff;line-height:1.1;margin-bottom:8px;text-shadow:0 0 20px #6495ED88;}
-.t-logo span{color:#FFD700;text-shadow:0 0 20px #FFD70088;}
-.t-sub{font-size:8px;color:#888;margin-bottom:28px;line-height:1.8;}
-.av-row{display:flex;gap:12px;justify-content:center;margin-bottom:6px;}
+#title-bg { position: absolute; inset: 0; z-index: 0; }
+.t-content{position:relative;z-index:1;text-align:center;width:100%;max-width:550px; background: rgba(15,23,42,0.8); padding: 45px; border: 4px solid #334155; border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 20px 50px rgba(0,0,0,0.5);}
+.t-bank{font-size:15px;color:#6495ED;letter-spacing:5px;margin-bottom:26px; animation: float 3s ease-in-out infinite;}
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.t-logo{font-size:clamp(45px,14vw,80px);color:#fff;line-height:1.1;margin-bottom:18px;text-shadow:0 10px 0 #0f172a, 0 0 45px #6495ED88;}
+.t-logo span{color:#FFD700;text-shadow:0 10px 0 #aa8800, 0 0 45px #FFD70088;}
+.t-sub{font-size:13px;color:#cbd5e1;margin-bottom:45px;line-height:2.2;}
+.av-row{display:flex;gap:22px;justify-content:center;margin-bottom:20px;}
 .av-opt{
-  width:56px;height:56px;border:2px solid #333;
+  width:85px;height:85px;border:4px solid #334155;
   display:flex;align-items:center;justify-content:center;
-  cursor:pointer;background:#0a0a1a;
-  image-rendering:pixelated;
+  cursor:pointer;background:#0f172a;
+  image-rendering:pixelated; border-radius: 12px;
+  transition: all 0.2s;
 }
-.av-opt.sel,.av-opt:active{border-color:#FFD700;background:#1a1200;}
-.t-label{font-size:7px;color:#555;margin-bottom:10px;letter-spacing:1px;}
+.av-opt.sel {border-color:#FFD700;background:#1e293b; transform: scale(1.15) translateY(-8px); box-shadow: 0 15px 30px rgba(255,215,0,0.3);}
 .t-btn{
-  background:#0d1a3d;border:3px solid #FFD700;
+  background:linear-gradient(#334155, #1e293b);border:5px solid #FFD700;
   color:#FFD700;font-family:'Press Start 2P',monospace;
-  font-size:10px;padding:14px 32px;cursor:pointer;
-  letter-spacing:1px;text-transform:uppercase;
-  margin-top:10px;
+  font-size:18px;padding:26px 52px;cursor:pointer;
+  letter-spacing:3px;text-transform:uppercase;
+  margin-top:30px; border-radius: 12px;
+  box-shadow: 0 10px 0 #aa8800, 0 25px 40px rgba(0,0,0,0.6);
+  transition: all 0.1s;
+  animation: pulse 2s infinite;
 }
-.t-btn:active{background:#1a2a5a;}
-.t-hint{font-size:6px;color:#333;margin-top:14px;letter-spacing:1px;}
+.t-btn:active{transform: translateY(10px); box-shadow: 0 0 0 #aa8800, 0 10px 20px rgba(0,0,0,0.6);}
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
-/* MAP */
+/* MAP SCREEN */
 #map-screen{
   position:fixed;inset:0;z-index:70;
-  background:#050510;
+  background:linear-gradient(#1e293b, #334155);
   display:none;flex-direction:column;overflow-y:auto;
 }
-#map-hdr{padding:50px 14px 14px;text-align:center;}
-#map-hdr h2{font-size:11px;color:#FFD700;margin-bottom:6px;}
-#map-hdr p{font-size:7px;color:#888;}
-.map-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px;max-width:420px;margin:0 auto;}
+#map-hdr{padding:80px 25px 30px;text-align:center;}
+#map-hdr h2{font-size:22px;color:#FFD700;margin-bottom:15px; text-shadow: 0 0 20px #FFD70055;}
+#map-hdr p{font-size:12px;color:#94a3b8;}
+.map-grid{display:grid;grid-template-columns:1fr 1fr;gap:25px;padding:30px;max-width:700px;margin:0 auto;}
 .map-cell{
-  background:#0a0a1a;border:2px solid #222;
-  padding:14px 10px;text-align:center;cursor:pointer;
+  background:rgba(30, 41, 59, 0.9);border:4px solid #475569;
+  padding:30px 20px;text-align:center;cursor:pointer;
+  border-radius: 12px; transition: all 0.2s;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
 }
-.map-cell:active{background:#151530;}
-.map-cell.done{border-color:#50fa7b;}
-.map-cell.lock{opacity:0.4;cursor:not-allowed;}
-.map-emoji{font-size:28px;margin-bottom:6px;}
-.map-num{font-size:7px;color:#555;margin-bottom:4px;}
-.map-name{font-size:8px;color:#ddd;margin-bottom:4px;line-height:1.5;}
-.map-stat{font-size:7px;margin-top:6px;}
+.map-cell:active{transform: scale(0.95);}
+.map-cell.done{border-color:#50fa7b; background: rgba(0, 40, 20, 0.8);}
+.map-cell.lock{opacity:0.6;cursor:not-allowed; filter: grayscale(100%);}
+.map-emoji{font-size:55px;margin-bottom:18px; filter: drop-shadow(0 8px 6px rgba(0,0,0,0.5));}
 
 /* LEVEL COMPLETE */
 #lc{
   position:fixed;inset:0;z-index:80;
-  background:#050510;
+  background:rgba(15, 23, 42, 0.96);
   display:none;flex-direction:column;
   align-items:center;justify-content:center;
-  padding:20px;text-align:center;overflow-y:auto;
+  padding:30px;text-align:center;overflow-y:auto;
+  backdrop-filter: blur(15px);
 }
-.lc-big{font-size:40px;margin-bottom:12px;}
-.lc-h{font-size:12px;color:#FFD700;margin-bottom:8px;}
-.lc-s{font-size:8px;color:#888;margin-bottom:16px;}
-.lc-pts{font-size:36px;color:#FFD700;}
-.lc-max{font-size:7px;color:#555;margin-bottom:20px;}
-.lc-box{background:#0a0a1a;border:2px solid #222;padding:14px;margin-bottom:16px;width:100%;max-width:380px;text-align:left;}
-.lc-item{font-size:7px;color:#888;margin-bottom:8px;display:flex;gap:8px;line-height:1.6;}
-.lc-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
-.lc-btn{
-  background:#0a0a1a;border:2px solid #6495ED;
-  color:#6495ED;font-family:'Press Start 2P',monospace;
-  font-size:8px;padding:12px 20px;cursor:pointer;
-}
-.lc-btn.gold{border-color:#FFD700;color:#FFD700;background:#0a0800;}
-.lc-btn:active{background:#151530;}
+.lc-box-anim { animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+@keyframes slideUp { 0% { transform: translateY(80px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+.lc-big{font-size:90px;margin-bottom:25px; animation: bounce 1s infinite;}
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-25px); } }
+.lc-h{font-size:24px;color:#FFD700;margin-bottom:16px; text-shadow: 0 0 25px #FFD700aa;}
+.lc-s{font-size:14px;color:#e2e8f0;margin-bottom:35px;}
+.lc-pts{font-size:70px;color:#FFD700; text-shadow: 0 8px 0 #aa8800;}
+.lc-max{font-size:12px;color:#94a3b8;margin-bottom:40px;}
+.lc-box{background:#0f172a;border:4px solid #334155;padding:30px;margin-bottom:35px;width:100%;max-width:600px;text-align:left; border-radius: 12px;}
+.lc-item{font-size:12px;color:#cbd5e1;margin-bottom:18px;display:flex;gap:18px;line-height:1.7;}
+.lc-btns{display:flex;gap:25px;flex-wrap:wrap;justify-content:center;}
 
 /* TOAST */
 .px-toast{
-  position:fixed;top:52px;right:8px;
-  background:#001a08;border:2px solid #50fa7b;
+  position:fixed;top:90px;right:25px;
+  background:rgba(0, 30, 15, 0.95);border:4px solid #50fa7b;
   color:#50fa7b;font-family:'Press Start 2P',monospace;
-  font-size:8px;padding:8px 12px;z-index:200;
-  animation:toastPx 2.2s steps(1) forwards;pointer-events:none;
+  font-size:13px;padding:20px 25px;z-index:200;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 8px;
+  animation:toastPx 2.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;pointer-events:none;
 }
-@keyframes toastPx{0%{opacity:0;transform:translateX(20px)}8%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+@keyframes toastPx{
+    0%{opacity:0;transform:translateX(80px) scale(0.8)}
+    10%{opacity:1;transform:none scale(1)}
+    85%{opacity:1;transform:none scale(1)}
+    100%{opacity:0;transform:translateY(-30px) scale(0.9)}
+}
+
+/* Specific Mini-game styling additions */
+.phone-wrap{background:#0f172a;border:5px solid #334155;border-radius:24px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.6);}
+.budget-row input[type=range]{height:10px; border-radius:5px; background:#334155; -webkit-appearance:none; outline:none;}
+.budget-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:28px;height:28px;border-radius:50%;background:#6495ED; border:4px solid #fff; cursor:pointer;}
+.cmp-tbl th, .cmp-tbl td { padding: 16px 10px; }
 </style>
 </head>
 <body>
-<canvas id="c"></canvas>
+<div id="game-container">
+    <canvas id="c"></canvas>
+</div>
 <div id="ui"></div>
 
 <!-- HUD -->
@@ -296,7 +324,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Pr
 <!-- DIALOG -->
 <div id="dlg">
   <div id="dlg-inner">
-    <canvas id="dlg-face" width="48" height="48"></canvas>
+    <div id="dlg-face-container"><canvas id="dlg-face"></canvas></div>
     <div style="flex:1">
       <div id="dlg-name">СИСТЕМ</div>
       <div id="dlg-text">...</div>
@@ -312,7 +340,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Pr
     <div class="dpb" id="dp-l">◀</div>
     <div class="dpb" id="dp-r">▶</div>
   </div>
-  <div style="display:flex;gap:8px;align-items:flex-end;">
+  <div style="display:flex;gap:20px;align-items:flex-end;">
     <div class="abtn" id="abtn-b">MAP</div>
     <div class="abtn" id="abtn-a">A</div>
   </div>
@@ -329,20 +357,19 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Pr
 
 <!-- TITLE -->
 <div id="title">
-  <canvas id="title-canvas"></canvas>
+  <canvas id="title-bg"></canvas>
   <div class="t-content">
     <div class="t-bank">★ ТӨРИЙН БАНК ★</div>
     <div class="t-logo">BANK<br><span>QUEST</span></div>
-    <div class="t-sub">САНХҮҮГИЙН АЯЛАЛ<br>PIXEL EDITION</div>
-    <div class="t-label">АВАТАР СОНГОНО УУ</div>
+    <div class="t-sub">САНХҮҮГИЙН АЯЛАЛ<br>SLATE EDITION</div>
+    <div class="px-label" style="color:#cbd5e1">АВАТАР СОНГОНО УУ</div>
     <div class="av-row" id="av-row">
-      <canvas class="av-opt sel" id="av0" width="56" height="56" data-i="0" onclick="selAv(0)"></canvas>
-      <canvas class="av-opt" id="av1" width="56" height="56" data-i="1" onclick="selAv(1)"></canvas>
-      <canvas class="av-opt" id="av2" width="56" height="56" data-i="2" onclick="selAv(2)"></canvas>
-      <canvas class="av-opt" id="av3" width="56" height="56" data-i="3" onclick="selAv(3)"></canvas>
+      <canvas class="av-opt sel" id="av0" data-i="0" onclick="selAv(0)"></canvas>
+      <canvas class="av-opt" id="av1" data-i="1" onclick="selAv(1)"></canvas>
+      <canvas class="av-opt" id="av2" data-i="2" onclick="selAv(2)"></canvas>
+      <canvas class="av-opt" id="av3" data-i="3" onclick="selAv(3)"></canvas>
     </div>
     <button class="t-btn" onclick="startGame()">▶ START GAME</button>
-    <div class="t-hint">★ 30 MIN ★ 4 LEVELS ★ MOBILE READY ★</div>
   </div>
 </div>
 
@@ -350,32 +377,27 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Pr
 <div id="map-screen">
   <div id="map-hdr"><h2>★ ГАЗРЫН ЗУРАГ ★</h2><p>ҮЕ СОНГОНО УУ</p></div>
   <div class="map-grid" id="map-grid"></div>
-  <div style="height:24px"></div>
+  <div style="height:60px"></div>
 </div>
 
 <!-- LEVEL COMPLETE -->
 <div id="lc">
-  <div class="lc-big" id="lc-em">🎉</div>
-  <div class="lc-h" id="lc-h">ҮЕ ДУУССАН!</div>
-  <div class="lc-s" id="lc-s">Амжилттай</div>
-  <div class="lc-pts" id="lc-pts">0</div>
-  <div class="lc-max">ОНОО / 400-ААС</div>
-  <div class="lc-box" id="lc-box"></div>
-  <div class="lc-btns">
-    <div class="lc-btn" onclick="goMap()">🗺 MAP</div>
-    <div class="lc-btn gold" id="lc-next" onclick="goNext()">ДАРААХ ▶</div>
+  <div class="lc-box-anim" style="display:flex; flex-direction:column; align-items:center;">
+      <div class="lc-big" id="lc-em">🎉</div>
+      <div class="lc-h" id="lc-h">ҮЕ ДУУССАН!</div>
+      <div class="lc-s" id="lc-s">Амжилттай</div>
+      <div class="lc-pts" id="lc-pts">0</div>
+      <div class="lc-max">ОНОО / 500-ААС</div>
+      <div class="lc-box" id="lc-box"></div>
+      <div class="lc-btns">
+        <div class="px-btn" style="width:auto; padding:22px 36px; margin:0;" onclick="goMap()">🗺 MAP</div>
+        <div class="px-btn gold" style="width:auto; padding:22px 36px; margin:0;" id="lc-next" onclick="goNext()">ДАРААХ ▶</div>
+      </div>
   </div>
 </div>
 
 <script>
 'use strict';
-// ═══════════════════════════════════════════════════════
-//  PIXEL ART SPRITE DATA  (16×16 per frame, RGBA palette)
-// ═══════════════════════════════════════════════════════
-// Each sprite is a 16×16 array of palette indices
-// Palette: 0=transparent,1=skin,2=hair,3=shirt,4=pants,5=shoes,
-//          6=dark,7=light,8=accent,9=white,10=gold,11=red,12=green
-
 const PAL = [
   [0,0,0,0],        // 0 transparent
   [255,205,148,255],// 1 skin
@@ -392,7 +414,7 @@ const PAL = [
   [50,200,80,255],  // 12 green
 ];
 
-// Player idle frame (16×16)
+// Player frames
 const SPR_PLAYER_IDLE = [
   [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0],
   [0,0,0,0,0,2,1,1,1,1,2,0,0,0,0,0],
@@ -411,8 +433,6 @@ const SPR_PLAYER_IDLE = [
   [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
   [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
 ];
-
-// Player walk frame 1
 const SPR_PLAYER_W1 = [
   [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0],
   [0,0,0,0,0,2,1,1,1,1,2,0,0,0,0,0],
@@ -431,8 +451,6 @@ const SPR_PLAYER_W1 = [
   [0,0,0,0,0,5,5,0,0,0,0,0,0,0,0,0],
   [0,0,0,0,0,5,5,0,0,0,0,0,0,0,0,0],
 ];
-
-// Player walk frame 2
 const SPR_PLAYER_W2 = [
   [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0],
   [0,0,0,0,0,2,1,1,1,1,2,0,0,0,0,0],
@@ -452,7 +470,7 @@ const SPR_PLAYER_W2 = [
   [0,0,0,0,0,0,0,5,5,0,0,0,0,0,0,0],
 ];
 
-// NPC: Teller (banker lady, pink uniform)
+// NPCs
 const SPR_TELLER = [
   [0,0,0,0,0,2,2,2,2,2,0,0,0,0,0,0],
   [0,0,0,0,2,1,1,1,1,1,2,0,0,0,0,0],
@@ -471,8 +489,6 @@ const SPR_TELLER = [
   [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
   [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
 ];
-
-// NPC: Advisor (suit)
 const SPR_ADVISOR = [
   [0,0,0,0,0,6,6,6,6,6,6,0,0,0,0,0],
   [0,0,0,0,6,1,1,1,1,1,1,6,0,0,0,0],
@@ -491,8 +507,6 @@ const SPR_ADVISOR = [
   [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
   [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
 ];
-
-// NPC: Security guard
 const SPR_GUARD = [
   [0,0,0,0,0,6,2,2,2,6,0,0,0,0,0,0],
   [0,0,0,0,6,1,1,1,1,1,6,0,0,0,0,0],
@@ -511,8 +525,6 @@ const SPR_GUARD = [
   [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
   [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
 ];
-
-// NPC: AI robot
 const SPR_ROBOT = [
   [0,0,0,0,3,3,3,3,3,3,3,3,0,0,0,0],
   [0,0,0,3,3,3,3,3,3,3,3,3,3,0,0,0],
@@ -531,48 +543,9 @@ const SPR_ROBOT = [
   [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
   [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
 ];
-
-// NPC variants
 const NPC_SPRS = [SPR_TELLER, SPR_ADVISOR, SPR_GUARD, SPR_ROBOT];
 
-// Tile sprites (8×8 blocks scaled)
-// floor tile
-const TILE_FLOOR = [
-  [6,6,6,6,6,6,6,6],
-  [6,7,7,7,7,7,7,6],
-  [6,7,7,7,7,7,7,6],
-  [6,7,7,6,6,7,7,6],
-  [6,7,7,6,6,7,7,6],
-  [6,7,7,7,7,7,7,6],
-  [6,7,7,7,7,7,7,6],
-  [6,6,6,6,6,6,6,6],
-];
-
-// wall tile
-const TILE_WALL = [
-  [4,4,4,4,4,4,4,4],
-  [4,6,6,6,6,6,6,4],
-  [4,6,4,4,4,4,6,4],
-  [4,4,4,4,4,4,4,4],
-  [4,4,4,4,4,4,4,4],
-  [4,6,4,4,4,4,6,4],
-  [4,6,6,6,6,6,6,4],
-  [4,4,4,4,4,4,4,4],
-];
-
-// window tile
-const TILE_WIN = [
-  [3,3,3,3,3,3,3,3],
-  [3,7,7,3,7,7,7,3],
-  [3,7,7,3,7,7,7,3],
-  [3,3,3,3,3,3,3,3],
-  [3,7,7,7,3,7,7,3],
-  [3,7,7,7,3,7,7,3],
-  [3,3,3,3,3,3,3,3],
-  [3,3,3,3,3,3,3,3],
-];
-
-// ATM sprite (16×16)
+// Decorations
 const SPR_ATM = [
   [0,6,6,6,6,6,6,6,6,6,6,6,6,6,6,0],
   [6,4,4,4,4,4,4,4,4,4,4,4,4,4,4,6],
@@ -591,8 +564,6 @@ const SPR_ATM = [
   [6,4,4,4,4,4,4,4,4,4,4,4,4,4,4,6],
   [0,6,6,6,6,6,6,6,6,6,6,6,6,6,6,0],
 ];
-
-// Counter/desk sprite
 const SPR_DESK = [
   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -611,8 +582,6 @@ const SPR_DESK = [
   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 ];
-
-// Door sprite
 const SPR_DOOR = [
   [8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8],
   [8,4,4,4,4,4,4,4,4,4,4,4,4,4,4,8],
@@ -631,8 +600,6 @@ const SPR_DOOR = [
   [8,4,4,4,4,4,4,4,4,4,4,4,4,4,4,8],
   [8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8],
 ];
-
-// Plant sprite
 const SPR_PLANT = [
   [0,0,0,0,0,0,12,0,0,0,0,0,0,0,0,0],
   [0,0,0,0,0,12,12,12,0,0,0,0,0,0,0,0],
@@ -652,60 +619,75 @@ const SPR_PLANT = [
   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 ];
 
-// Coin sparkle for decoration
-const SPR_COIN = [
-  [0,0,0,8,8,0,0,0],
-  [0,0,8,10,10,8,0,0],
-  [0,8,10,10,10,10,8,0],
-  [8,10,10,8,8,10,10,8],
-  [8,10,10,8,8,10,10,8],
-  [0,8,10,10,10,10,8,0],
-  [0,0,8,10,10,8,0,0],
-  [0,0,0,8,8,0,0,0],
-];
+const SCALE = 5; 
+const spriteCache = {};
 
-// ═══════════════════════════════════════════════════════
-//  SPRITE RENDERING ENGINE
-// ═══════════════════════════════════════════════════════
-const SCALE = 3; // world pixel scale (each sprite px = 3 canvas px)
-
-function drawSprite(ctx, spr, wx, wy, palOverrides, flipX) {
-  const size = spr.length;
-  for (let row = 0; row < size; row++) {
-    for (let col = 0; col < size; col++) {
-      let pidx = spr[row][flipX ? size - 1 - col : col];
-      if (pidx === 0) continue;
-      const rgba = (palOverrides && palOverrides[pidx]) ? palOverrides[pidx] : PAL[pidx];
-      ctx.fillStyle = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},${rgba[3]/255})`;
-      ctx.fillRect(wx + col * SCALE, wy + row * SCALE, SCALE, SCALE);
-    }
-  }
+function getSpriteKey(sprArray, palOvr, flipX) {
+    let key = (sprArray === SPR_PLAYER_IDLE) ? 'idle' : 
+              (sprArray === SPR_PLAYER_W1) ? 'w1' : 
+              (sprArray === SPR_PLAYER_W2) ? 'w2' : 
+              (sprArray === SPR_TELLER) ? 'teller' : 
+              (sprArray === SPR_ADVISOR) ? 'adv' : 
+              (sprArray === SPR_GUARD) ? 'guard' : 
+              (sprArray === SPR_ROBOT) ? 'bot' : 
+              (sprArray === SPR_ATM) ? 'atm' : 
+              (sprArray === SPR_DESK) ? 'desk' : 
+              (sprArray === SPR_DOOR) ? 'door' : 
+              (sprArray === SPR_PLANT) ? 'plant' : 'unk';
+    if (palOvr) key += '_' + JSON.stringify(palOvr);
+    if (flipX) key += '_f';
+    return key;
 }
 
-function drawSprite8(ctx, spr, wx, wy, scl) {
-  const s = scl || SCALE;
-  for (let row = 0; row < 8; row++) {
-    for (let col = 0; col < 8; col++) {
-      let pidx = spr[row][col];
-      if (pidx === 0) continue;
-      const rgba = PAL[pidx];
-      ctx.fillStyle = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},1)`;
-      ctx.fillRect(wx + col * s, wy + row * s, s, s);
-    }
-  }
-}
-
-// Pre-render sprite to an offscreen canvas for perf
-function makeSpriteCanvas(spr, palOvr, flip) {
+function preRenderSprite(spr, palOvr, flipX) {
   const size = spr.length;
   const oc = document.createElement('canvas');
-  oc.width = size * SCALE; oc.height = size * SCALE;
+  oc.width = (size + 2) * SCALE; // Add 2 pixels of padding for outline
+  oc.height = (size + 2) * SCALE;
   const octx = oc.getContext('2d');
-  drawSprite(octx, spr, 0, 0, palOvr, flip);
+  
+  const isVis = (r, c) => {
+     if(r < 0 || r >= size || c < 0 || c >= size) return false;
+     let pc = flipX ? size - 1 - c : c;
+     return spr[r][pc] !== 0;
+  };
+
+  // 1. Draw Edge Outline (Light slate to pop from backgrounds)
+  octx.fillStyle = 'rgba(15, 23, 42, 0.85)'; 
+  for (let row = -1; row <= size; row++) {
+    for (let col = -1; col <= size; col++) {
+      if (!isVis(row, col)) {
+         if (isVis(row-1, col) || isVis(row+1, col) || isVis(row, col-1) || isVis(row, col+1) ||
+             isVis(row-1, col-1) || isVis(row+1, col+1) || isVis(row-1, col+1) || isVis(row+1, col-1)) {
+             octx.fillRect((col+1) * SCALE, (row+1) * SCALE, SCALE, SCALE);
+         }
+      }
+    }
+  }
+
+  // 2. Draw Main Sprite
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      if (isVis(row, col)) {
+        let pc = flipX ? size - 1 - col : col;
+        let pidx = spr[row][pc];
+        const rgba = (palOvr && palOvr[pidx]) ? palOvr[pidx] : PAL[pidx];
+        octx.fillStyle = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},${rgba[3]/255})`;
+        octx.fillRect((col+1) * SCALE, (row+1) * SCALE, SCALE, SCALE);
+      }
+    }
+  }
   return oc;
 }
 
-// Avatar palette overrides
+function drawSprite(ctx, spr, wx, wy, palOverrides, flipX) {
+    const key = getSpriteKey(spr, palOverrides, flipX);
+    if (!spriteCache[key]) {
+        spriteCache[key] = preRenderSprite(spr, palOverrides, flipX);
+    }
+    ctx.drawImage(spriteCache[key], Math.round(wx - SCALE), Math.round(wy - SCALE));
+}
+
 const AV_PALETTES = [
   null, // default blue
   { 3: [220,80,80,255], 4: [100,40,40,255] },   // red shirt
@@ -723,52 +705,23 @@ function getPlayerPal(avIdx) {
   return pal;
 }
 
-// Draw avatar preview on title screen
 function drawAvatarPreview(canvas, avIdx) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  // background
-  ctx.fillStyle = '#0a0a1a';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  // draw sprite centered, scale to fit 56px canvas
-  const s = 2;
   const spr = SPR_PLAYER_IDLE;
-  const off = (canvas.width - 16 * s) / 2;
   const pal = getPlayerPal(avIdx);
-  for (let row = 0; row < 16; row++) {
-    for (let col = 0; col < 16; col++) {
-      let pidx = spr[row][col];
-      if (pidx === 0) continue;
-      const rgba = pal[pidx] || PAL[pidx];
-      ctx.fillStyle = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},1)`;
-      ctx.fillRect(off + col * s, 4 + row * s, s, s);
-    }
-  }
+  const img = preRenderSprite(spr, pal, false);
+  ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, canvas.width, canvas.height);
 }
 
-// Draw NPC face on dialog portrait
 function drawNPCFace(canvas, npcIdx) {
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, 48, 48);
-  ctx.fillStyle = '#111';
-  ctx.fillRect(0, 0, 48, 48);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   const spr = NPC_SPRS[npcIdx] || SPR_TELLER;
-  const s = 3;
-  const off = (48 - 16 * s) / 2 + 8; // just head rows 0-6
-  for (let row = 0; row < 7; row++) {
-    for (let col = 0; col < 16; col++) {
-      let pidx = spr[row][col];
-      if (pidx === 0) continue;
-      const rgba = PAL[pidx];
-      ctx.fillStyle = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},1)`;
-      ctx.fillRect(off + col * s, 6 + row * s, s, s);
-    }
-  }
+  const img = preRenderSprite(spr, null, false);
+  ctx.drawImage(img, -canvas.width*0.2, -canvas.height*0.1, canvas.width*1.4, canvas.height*1.4);
 }
 
-// ═══════════════════════════════════════════════════════
-//  GAME STATE
-// ═══════════════════════════════════════════════════════
 const GS = {
   av: 0, balance: 500000, pts: 0,
   done: new Set(), lvl: 0,
@@ -777,17 +730,16 @@ const GS = {
 
 const inp = { left: false, right: false };
 const plr = {
-  wx: 80, // world x
-  spd: 2.2, facing: 1,
+  wx: 150, // world x
+  spd: 5, facing: 1,
   frame: 0, fTimer: 0,
   sprW: 16 * SCALE, sprH: 16 * SCALE,
 };
 
 let camX = 0;
+let targetCamX = 0;
+let screenShake = 0;
 
-// ═══════════════════════════════════════════════════════
-//  CANVAS SETUP
-// ═══════════════════════════════════════════════════════
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 let W, H;
@@ -796,29 +748,25 @@ function resize() {
   W = window.innerWidth; H = window.innerHeight;
   canvas.width = W; canvas.height = H;
   ctx.imageSmoothingEnabled = false;
+  ctx.mozImageSmoothingEnabled = false;
+  ctx.webkitImageSmoothingEnabled = false;
+  ctx.msImageSmoothingEnabled = false;
 }
 resize();
-window.addEventListener('resize', () => { resize(); });
-
-// Title canvas starfield
-const tc = document.getElementById('title-canvas');
-tc.width = window.innerWidth; tc.height = window.innerHeight;
+window.addEventListener('resize', resize);
+const tc = document.getElementById('title-bg');
 const tctx = tc.getContext('2d');
 
-// ═══════════════════════════════════════════════════════
-//  LEVELS
-// ═══════════════════════════════════════════════════════
-// Each level: bg color scheme, floor palette, NPCs, interactables, width
 const LEVELS = [
   {
     id:1, emoji:'🏦', name:'Оюутны амьдрал',
-    bgTop:'#07091a', bgBot:'#0d1535',
-    floorCol: [60,70,120], wallCol: [30,35,80],
-    accentCol: [100,130,255],
+    theme: 'city',
+    bgTop:'#475569', bgBot:'#1e293b', // Lighter Slate
+    floorCol: [100, 116, 139], wallCol: [71, 85, 105], accentCol: [96, 165, 250],
     worldW: 2800,
+    coins: [350, 500, 1100, 1250, 1900, 2050, 2400],
     npcs: [
-      { wx:300, sprIdx:0, name:'ТЕЛЛЕР БОЛОРМАА', color:'#ff8888',
-        faceIdx:0,
+      { wx:400, sprIdx:0, name:'ТЕЛЛЕР БОЛОРМАА', color:'#fca5a5', faceIdx:0,
         dialog:[
           {speaker:'ТЕЛЛЕР БОЛОРМАА',text:'Сайн байна уу! Төрийн банкинд тавтай морилно уу! Танд яаж туслах вэ?'},
           {speaker:'ТЕЛЛЕР БОЛОРМАА',text:'Харилцах данс нь өдөр тутмын гүйлгээнд тохиромжтой. Дебит карт хамт олгоно. Ямар данс нээлгэхийг хүсч байна?'}
@@ -826,483 +774,462 @@ const LEVELS = [
         quiz:{q:'ОЮУТАНД АЛЬ ДАНС ТОХИРОМЖТОЙ ВЭ?',
           ch:[
             {i:'💳',t:'Харилцах данс — гүйлгээ, дебит карт',ok:true},
-            {i:'🏛',t:'Хадгаламжийн данс — өндөр хүү, хязгаар',ok:false},
-            {i:'💵',t:'Бэлнээр авна',ok:false},
+            {i:'🏛',t:'Хадгаламжийн данс — өндөр хүү',ok:false},
           ],
-          gf:'✓ ЗӨРВЭЛ! ХАРИЛЦАХ ДАНС НЬ ТА ДЕБИТ КАРТАА АВЛАА! +40 ОНОО',
-          bf:'✗ ХАРИЛЦАХ ДАНС НЬ ДЕБИТ КАРТТАЙ, ХЯЗГААРГҮЙ ГҮЙЛГЭЭТЭЙ!',
-          rw:40, info:'ХАРИЛЦАХ ДАНС: ХЯЗГААРГҮЙ ГҮЙЛГЭЭ + ДЕБИТ КАРТ. ХАДГАЛАМЖ: 8-12% ХҮҮ + ХУГАЦААНЫ ХЯЗГААР.'}
+          gf:'✓ ЗӨВ! ХАРИЛЦАХ ДАНС НЭЭЖ ДЕБИТ КАРТАА АВЛАА!',
+          bf:'✗ ХАРИЛЦАХ ДАНС НЬ ӨДӨР ТУТМЫН ГҮЙЛГЭЭНД ИЛҮҮ ТОХИРОМЖТОЙ.',
+          rw:40, info:'ХАРИЛЦАХ ДАНС: Хязгааргүй гүйлгээ хийж, карттай холбогдоно.'}
       },
-      { wx:800, sprIdx:3, name:'ЦАХИМ ТУСЛАГЧ', color:'#50fa7b',
-        faceIdx:3,
-        dialog:[{speaker:'ЦАХИМ ТУСЛАГЧ',text:'САРЫН ТӨСӨВ ЗОХИОХОД ТАН ДАА ТУСАЛЪЯ! МИНИ ТОГЛООМД ОРНО УУ.'}],
+      { wx:1000, sprIdx:3, name:'ЦАХИМ ТУСЛАГЧ', color:'#86efac', faceIdx:3,
+        dialog:[{speaker:'ЦАХИМ ТУСЛАГЧ',text:'САРЫН ТӨСӨВ ЗОХИОХОД ТАНД ТУСАЛЪЯ!'}],
         mg:'budget'
       },
-      { wx:1400, sprIdx:2, name:'АЮУЛГҮЙ БАЙДАЛ', color:'#ffb86c',
-        faceIdx:2,
-        dialog:[
-          {speaker:'АЮУЛГҮЙ БАЙДАЛ',text:'PIN КОДОО ХАМГААЛ! КАРТЫН МЭДЭЭЛЛИЙГ ХЭЗЭЭ Ч ХУВААЛЦАЖ БОЛОХГҮЙ.'},
-          {speaker:'АЮУЛГҮЙ БАЙДАЛ',text:'ДЭЛГҮҮРТ ЗАРЦУУЛАЛТАА ТООЦООЛ!'}
-        ],
+      { wx:1600, sprIdx:2, name:'АЮУЛГҮЙ БАЙДАЛ', color:'#fcd34d', faceIdx:2,
+        dialog:[{speaker:'АЮУЛГҮЙ БАЙДАЛ',text:'PIN КОДОО ХАМГААЛ! ДЭЛГҮҮРТ КАРТААРАА ТООЦОО ХИЙГЭЭРЭЙ.'}],
         mg:'shopping'
       },
     ],
     deco:[
-      {wx:200,spr:SPR_DESK,label:'ЛАВЛАХ ШИРЭЭ'},
-      {wx:600,spr:SPR_ATM,label:'ATM'},
-      {wx:1100,spr:SPR_PLANT},
-      {wx:1800,spr:SPR_PLANT},
-      {wx:2200,spr:SPR_DESK},
+      {wx:200,spr:SPR_DESK},{wx:750,spr:SPR_ATM},{wx:1350,spr:SPR_PLANT},{wx:2200,spr:SPR_DESK},
     ],
     door:{wx:2650, label:'ГАРАХ →'},
   },
   {
     id:2, emoji:'📱', name:'Цахим Банк',
-    bgTop:'#04120a', bgBot:'#081a10',
-    floorCol: [30,90,60], wallCol: [15,50,30],
-    accentCol: [50,200,100],
+    theme: 'matrix',
+    bgTop:'#0f766e', bgBot:'#064e3b', // Lighter Teal
+    floorCol: [16, 185, 129], wallCol: [4, 120, 87], accentCol: [110, 231, 183],
     worldW: 2800,
+    coins: [400, 600, 1200, 1400, 1800, 2100, 2300],
     npcs: [
-      { wx:320, sprIdx:3, name:'ГЯЛС БАНК', color:'#50fa7b',
-        faceIdx:3,
-        dialog:[{speaker:'ГЯЛС БАНК',text:'ГЯЛС БАНК АППЛИКЕЙШНООР БАЙРНЫ МӨНГӨ ТӨЛЖ, НАЙЗАДАА ШИЛЖҮҮЛЭ!'}],
+      { wx:350, sprIdx:3, name:'ГЯЛС БАНК', color:'#6ee7b7', faceIdx:3,
+        dialog:[{speaker:'ГЯЛС БАНК',text:'ГЯЛС БАНК АППЛИКЕЙШНООР ТӨЛБӨР ТӨЛЖ, ШИЛЖҮҮЛЭГ ХИЙНЭ ҮҮ!'}],
         mg:'gyalsbank'
       },
-      { wx:900, sprIdx:2, name:'КИБЕР ХАМГААЛАЛТ', color:'#ff5555',
-        faceIdx:2,
-        dialog:[{speaker:'КИБЕР ХАМГААЛАЛТ',text:'⚠ ФИШИНГ ХАЛДЛАГА ТАРХАЖ БАЙНА! ТА МЕССЕЖИЙГ ШАЛГААРАЙ!'}],
+      { wx:1050, sprIdx:2, name:'КИБЕР ХАМГААЛАЛТ', color:'#fca5a5', faceIdx:2,
+        dialog:[{speaker:'КИБЕР ХАМГААЛАЛТ',text:'⚠ АНХААР! ФИШИНГ ХАЛДЛАГА ТАРХАЖ БАЙНА. МЕССЕЖИЙГ ШАЛГААРАЙ!'}],
         mg:'phishing'
       },
-      { wx:1600, sprIdx:1, name:'ДИЖИТАЛ МЕНЕЖЕР', color:'#6495ED',
-        faceIdx:1,
-        dialog:[{speaker:'ДИЖИТАЛ МЕНЕЖЕР',text:'МОБАЙЛ БАНК ХААНААС Ч 24/7 БОЛОМЖТОЙ!'}],
+      { wx:1700, sprIdx:1, name:'ДИЖИТАЛ МЕНЕЖЕР', color:'#93c5fd', faceIdx:1,
+        dialog:[{speaker:'ДИЖИТАЛ МЕНЕЖЕР',text:'МОБАЙЛ БАНКИНГИЙН АЧ ХОЛБОГДЛЫГ МЭДЭХ ҮҮ?'}],
         quiz:{q:'МОБАЙЛ БАНКИНГИЙН ХАМГИЙН ТОМ ДАВУУ ТАЛ?',
           ch:[
-            {i:'⏰',t:'24/7 БОЛОМЖТОЙ — БАНК РУУ ЯВАХ ШААРДЛАГАГҮЙ',ok:true},
-            {i:'💵',t:'БЭЛЭН МӨНГОНЫ ДҮН ИХ',ok:false},
-            {i:'📞',text:'ЗӨВХӨН УТСААР',ok:false},
+            {i:'⏰',t:'24/7 хаанаас ч гүйлгээ хийх боломж',ok:true},
+            {i:'💵',t:'Бэлэн мөнгөний хязгаар өндөр',ok:false},
           ],
-          gf:'✓ ЗӨРВЭЛ! МОБАЙЛ БАНК 24/7, ХААНААС Ч!',
-          bf:'✗ ХАМГИЙН ТОМ ДАВУУ ТАЛ: 24/7, ХААНААС Ч ХЭРЭГЛЭХ БОЛОМЖ!',
-          rw:35,info:'МОНГОЛЫН МОБАЙЛ БАНКИНГИЙН ХЭРЭГЛЭГЧИД ЖИЛ БҮР 40%+ ӨСЧ БАЙНА.'}
+          gf:'✓ ЗӨВ! ЦАГ ХУГАЦАА, ОРОН ЗАЙНААС ҮЛ ХАМААРНА.',
+          bf:'✗ ХАМГИЙН ТОМ ДАВУУ ТАЛ НЬ 24/7 БОЛОМЖ ЮМ.',
+          rw:35,info:'Монголын мобайл банкны хэрэглэгчид жил бүр өсч байна.'}
       },
     ],
-    deco:[
-      {wx:200,spr:SPR_ATM},{wx:700,spr:SPR_PLANT},
-      {wx:1200,spr:SPR_ATM},{wx:2000,spr:SPR_PLANT},
-    ],
+    deco:[ {wx:200,spr:SPR_ATM},{wx:700,spr:SPR_PLANT},{wx:1400,spr:SPR_ATM},{wx:2000,spr:SPR_PLANT} ],
     door:{wx:2650,label:'ГАРАХ →'},
   },
   {
     id:3, emoji:'🌍', name:'Олон Улс',
-    bgTop:'#0d0618', bgBot:'#150a28',
-    floorCol: [80,40,140], wallCol: [50,20,100],
-    accentCol: [180,100,255],
+    theme: 'cyber',
+    bgTop:'#4338ca', bgBot:'#312e81', // Lighter Indigo
+    floorCol: [99, 102, 241], wallCol: [79, 70, 229], accentCol: [167, 139, 250],
     worldW: 2800,
+    coins: [400, 650, 1100, 1300, 1850, 2100, 2450],
     npcs: [
-      { wx:320, sprIdx:1, name:'ЗӨВЛӨХ БАТБАЯР', color:'#bd93f9',
-        faceIdx:1,
-        dialog:[{speaker:'ЗӨВЛӨХ БАТБАЯР',text:'ГЕРМАНД ЯВАХЫН ӨМНӨ САНХҮҮГИЙН ХЭРЭГСЛИЙГЭЭ БЭЛД! ХАРЬЦУУЛЪЯ.'}],
+      { wx:350, sprIdx:1, name:'ЗӨВЛӨХ БАТБАЯР', color:'#c4b5fd', faceIdx:1,
+        dialog:[{speaker:'ЗӨВЛӨХ БАТБАЯР',text:'ГАДААД РУУ ЯВАХЫН ӨМНӨ САНХҮҮГИЙН АРГУУДАА ХАРЬЦУУЛАН СУДЛААРАЙ.'}],
         mg:'compare'
       },
-      { wx:950, sprIdx:0, name:'ВАЛЮТ АРИЛЖАА', color:'#FFD700',
-        faceIdx:0,
-        dialog:[{speaker:'ВАЛЮТ АРИЛЖАА',text:'ГЕРМАНД €1000 ЕВРО ХЭРЭГТЭЙ. ХАНШ БА ШИМТГЭЛИЙГ ТООЦООЛ!'}],
+      { wx:1000, sprIdx:0, name:'ВАЛЮТ АРИЛЖАА', color:'#fde047', faceIdx:0,
+        dialog:[{speaker:'ВАЛЮТ АРИЛЖАА',text:'АЯЛАЛД ЕВРО ХЭРЭГТЭЙ. ХАНШ БА ШИМТГЭЛИЙГ ТООЦООЛЖ ҮЗЭЭРЭЙ.'}],
         mg:'currency'
       },
-      { wx:1600, sprIdx:3, name:'ДЭЛХИЙН ЧИГ ХАНДЛАГА', color:'#50fa7b',
-        faceIdx:3,
-        dialog:[{speaker:'ДЭЛХИЙН ЧИГ ХАНДЛАГА',text:'REVOLUT, WISE ЗЭРЭГ ФИНТЕК АППУУДЫН ТУХАЙ МЭДЭХ ХЭРЭГТЭЙ!'}],
-        quiz:{q:'REVOLUT/WISE-ИЙН ДАВУУ ТАЛ ЮУ ВЭ?',
+      { wx:1700, sprIdx:3, name:'ДЭЛХИЙН ХАНДЛАГА', color:'#86efac', faceIdx:3,
+        dialog:[{speaker:'ДЭЛХИЙН ХАНДЛАГА',text:'ОЛОН УЛСЫН ФИНТЕК АППУУДЫН ТУХАЙ АСУУЛТАД ХАРИУЛНА УУ.'}],
+        quiz:{q:'REVOLUT/WISE-ИЙН ГОЛ ДАВУУ ТАЛ ЮУ ВЭ?',
           ch:[
-            {i:'💸',t:'ГАДААД ШИЛЖҮҮЛЭГТ ХЯМД ШИМТГЭЛ, ТЭР ДАРГААР',ok:true},
-            {i:'🏦',t:'МОНГОЛД ИХ ATM',ok:false},
-            {i:'📞',t:'МОНГОЛ ХЭЛ САЙТАЙ',ok:false},
+            {i:'💸',t:'Гадаад шилжүүлэгт хямд шимтгэл, хурдан',ok:true},
+            {i:'🏦',t:'Монголд олон салбартай',ok:false},
           ],
-          gf:'✓ ЗӨРВЭЛ! ФИНТЕК: ХЯМД ШИМТГЭЛ, ХУРДАН ГҮЙЛГЭЭ!',
-          bf:'✗ ФИНТЕК АППУУДЫН ДАВУУ ТАЛ: ХЯМД ШИМТГЭЛ + ХУРДАН ГҮЙЛГЭЭ!',
-          rw:40,info:'REVOLUT: 30+ ВАЛЮТАД БОДИТ ХАНШ. WISE: ОЛОН УЛС ШИЛЖҮҮЛЭГТ ХЯМД.'}
+          gf:'✓ ЗӨВ! ХЯМД ШИМТГЭЛ, ХУРДАН ГҮЙЛГЭЭ НЬ ФИНТЕКИЙН ДАВУУ ТАЛ.',
+          bf:'✗ ТЭД МОНГОЛД САЛБАРГҮЙ. ГОЛ ДАВУУ ТАЛ НЬ ХЯМД ШИМТГЭЛ.',
+          rw:40,info:'Финтек аппууд нь уламжлалт банкнаас бага шимтгэл санал болгодог.'}
       },
     ],
-    deco:[
-      {wx:200,spr:SPR_PLANT},{wx:700,spr:SPR_ATM},
-      {wx:1200,spr:SPR_DESK},{wx:1900,spr:SPR_PLANT},
-    ],
+    deco:[ {wx:200,spr:SPR_PLANT},{wx:700,spr:SPR_ATM},{wx:1400,spr:SPR_DESK},{wx:2000,spr:SPR_PLANT} ],
     door:{wx:2650,label:'ГАРАХ →'},
   },
   {
     id:4, emoji:'📈', name:'Ирээдүйн Санхүү',
-    bgTop:'#030d05', bgBot:'#061508',
-    floorCol: [20,90,35], wallCol: [10,50,20],
-    accentCol: [50,220,80],
+    theme: 'future',
+    bgTop:'#a16207', bgBot:'#713f12', // Lighter Gold/Brown
+    floorCol: [234, 179, 8], wallCol: [202, 138, 4], accentCol: [250, 204, 21],
     worldW: 2800,
+    coins: [300, 500, 800, 1100, 1400, 1700, 2000, 2300],
     npcs: [
-      { wx:320, sprIdx:1, name:'ЗӨВЛӨХ БАТБАЯР', color:'#50fa7b',
-        faceIdx:1,
-        dialog:[{speaker:'ЗӨВЛӨХ БАТБАЯР',text:'ХӨРӨНГӨ ОРУУЛАЛТ ЭРТ ЭХЛЭХ ТУСАМ НИЙЛМЭЛ ХҮҮ ИХ АВНА!'}],
+      { wx:350, sprIdx:1, name:'ХӨРӨНГӨ ОРУУЛАЛТ', color:'#fef08a', faceIdx:1,
+        dialog:[{speaker:'ХӨРӨНГӨ ОРУУЛАЛТ',text:'ЭРТ ЭХЛЭХ НЬ НИЙЛМЭЛ ХҮҮГИЙН АШГИЙГ ИХЭСГЭНЭ. СОНГОЛТОО ХИЙНЭ ҮҮ.'}],
         mg:'invest'
       },
-      { wx:950, sprIdx:0, name:'ЗЭЭЛИЙН ЗӨВЛӨХ', color:'#FFD700',
-        faceIdx:0,
-        dialog:[{speaker:'ЗЭЭЛИЙН ЗӨВЛӨХ',text:'ОРОН СУУЦ АВАХЫГ МӨРӨӨДӨЖ БАЙНА УУ? ЗЭЭЛИЙН НӨХЦӨЛИЙГ СУДАЛ!'}],
+      { wx:1050, sprIdx:0, name:'ЗЭЭЛИЙН ЗӨВЛӨХ', color:'#fde047', faceIdx:0,
+        dialog:[{speaker:'ЗЭЭЛИЙН ЗӨВЛӨХ',text:'ОРОН СУУЦ АВАХЫГ МӨРӨӨДӨЖ БАЙНА УУ? ЗЭЭЛИЙН НӨХЦӨЛИЙГ ТООЦООЛ!'}],
         mg:'loan'
       },
-      { wx:1600, sprIdx:3, name:'САНХҮҮГИЙН AI', color:'#6495ED',
-        faceIdx:3,
-        dialog:[{speaker:'САНХҮҮГИЙН AI',text:'₮100,000 × (1+0.10)^20 = ₮672,750! НИЙЛМЭЛ ХҮҮГИЙН ХҮЧ!'}],
-        quiz:{q:'ХАМГИЙН УХААЛАГ САНХҮҮГИЙН ШИЙДВЭР АЛЬ ВЭ?',
+      { wx:1700, sprIdx:3, name:'САНХҮҮГИЙН AI', color:'#93c5fd', faceIdx:3,
+        dialog:[{speaker:'САНХҮҮГИЙН AI',text:'НИЙЛМЭЛ ХҮҮ НЬ ТАНЫ ХӨРӨНГИЙГ ХУРДАН ӨСГӨДӨГ.'}],
+        quiz:{q:'ХАМГИЙН УХААЛАГ САНХҮҮГИЙН ЗУРШИЛ АЛЬ ВЭ?',
           ch:[
-            {i:'💰',t:'ОРЛОГООС 15-20% ХАДГАЛЖ ЭРТ ЭХЛЭХ',ok:true},
-            {i:'🎰',t:'БҮХ МӨНГИЙГ ХУВЬЦААНД',ok:false},
-            {i:'💵',t:'МӨНГИЙГ БЭЛНЭЭР ХАДГАЛАХ',ok:false},
+            {i:'💰',t:'Орлогоос 15-20% тогтмол хадгалж эрт эхлэх',ok:true},
+            {i:'🎰',t:'Бүх мөнгөө өндөр эрсдэлтэй хувьцаанд хийх',ok:false},
           ],
-          gf:'✓ ГАЙХАЛТАЙ! НИЙЛМЭЛ ХҮҮ + ЭРТ ЭХЛЭХ = САНХҮҮГИЙН ЭРХТЭН!',
-          bf:'✗ ТОГТМОЛ ХАДГАЛЖ ЭРТ ЭХЛЭХ НЬ ХАМГИЙН БАТТАЙ!',
-          rw:50,info:'₮100К × (1.1)^20 = ₮672,750 — ЗӨВХӨН НИЙЛМЭЛ ХҮҮГИЙН ДҮН!'}
+          gf:'✓ ГАЙХАЛТАЙ! НИЙЛМЭЛ ХҮҮ + ТОГТМОЛ ХАДГАЛАМЖ = АМЖИЛТ!',
+          bf:'✗ ӨНДӨР ЭРСДЭЛД БҮХ МӨНГИЙГ ХИЙХ НЬ АЮУЛТАЙ.',
+          rw:50,info:'Тогтмол хуримтлал үүсгэж, урт хугацаанд хөрөнгө оруулах нь баттай арга.'}
       },
-      { wx:2400, sprIdx:0, name:'ДИПЛОМ', color:'#FFD700',
-        faceIdx:0,
+      { wx:2400, sprIdx:0, name:'ТӨГСГӨЛ', color:'#fde047', faceIdx:0,
         dialog:[
-          {speaker:'ДИПЛОМ 🎓',text:'БАЯР ХҮРГЭЕ! ТА САНХҮҮГИЙН БҮХ ҮЕ ДУУСГАЛАА!'},
-          {speaker:'ДИПЛОМ 🎓',text:'ТА ЖИНХЭНЭ САНХҮҮГИЙН МАСТЕР БОЛЛОО! БАНКНЫ ДАНС, МОБАЙЛ БАНК, ОЛОН УЛС, ХӨРӨНГӨ ОРУУЛАЛТ, ЗЭЭЛ МЭДЭХ БОЛЛОО!'},
+          {speaker:'ДИПЛОМ 🎓',text:'БАЯР ХҮРГЭЕ! ТА САНХҮҮГИЙН БҮХ ҮЕИЙГ АМЖИЛТТАЙ ДУУСГАЛАА!'},
+          {speaker:'ДИПЛОМ 🎓',text:'ТА ОДОО САНХҮҮГИЙН МЭДЛЭГТЭЙ, УХААЛАГ ХЭРЭГЛЭГЧ БОЛЛОО!'},
         ],
         trigger:'finalEnd'
       },
     ],
-    deco:[
-      {wx:200,spr:SPR_PLANT},{wx:700,spr:SPR_ATM},
-      {wx:1200,spr:SPR_PLANT},{wx:1900,spr:SPR_DESK},
-    ],
+    deco:[ {wx:200,spr:SPR_PLANT},{wx:700,spr:SPR_ATM},{wx:1400,spr:SPR_PLANT},{wx:2100,spr:SPR_DESK} ],
     door:{wx:2650,label:'ДУУСГАХ ★'},
   },
 ];
 
-// ═══════════════════════════════════════════════════════
-//  WORLD RENDERING
-// ═══════════════════════════════════════════════════════
-// We render at a fixed virtual height, scaled to screen
-const VH = 224; // virtual height in game pixels
-const VW_SCREEN = 256; // virtual screen width we target
-let pixScale;
+let particles = [];
+let actCoins = []; 
 
-function getFloorY() {
-  return Math.floor(H * 0.72);
-}
-
-function worldToScreen(wx) {
-  return wx - camX;
-}
-
-// Pixel art font (draw pixel text)
-const PIXEL_CHARS = {
-  ' ':[[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]],
-  'A':[[0,1,0],[1,0,1],[1,1,1],[1,0,1],[1,0,1]],
-  'B':[[1,1,0],[1,0,1],[1,1,0],[1,0,1],[1,1,0]],
-  'C':[[0,1,1],[1,0,0],[1,0,0],[1,0,0],[0,1,1]],
-  'D':[[1,1,0],[1,0,1],[1,0,1],[1,0,1],[1,1,0]],
-  'E':[[1,1,1],[1,0,0],[1,1,0],[1,0,0],[1,1,1]],
-  'F':[[1,1,1],[1,0,0],[1,1,0],[1,0,0],[1,0,0]],
-  'G':[[0,1,1],[1,0,0],[1,0,1],[1,0,1],[0,1,1]],
-  'H':[[1,0,1],[1,0,1],[1,1,1],[1,0,1],[1,0,1]],
-  'I':[[1,1,1],[0,1,0],[0,1,0],[0,1,0],[1,1,1]],
-  'J':[[0,1,1],[0,0,1],[0,0,1],[1,0,1],[0,1,0]],
-  'K':[[1,0,1],[1,1,0],[1,0,0],[1,1,0],[1,0,1]],
-  'L':[[1,0,0],[1,0,0],[1,0,0],[1,0,0],[1,1,1]],
-  'M':[[1,0,1],[1,1,1],[1,1,1],[1,0,1],[1,0,1]],
-  'N':[[1,0,1],[1,1,1],[1,1,1],[1,0,1],[1,0,1]],
-  'O':[[0,1,0],[1,0,1],[1,0,1],[1,0,1],[0,1,0]],
-  'P':[[1,1,0],[1,0,1],[1,1,0],[1,0,0],[1,0,0]],
-  'Q':[[0,1,0],[1,0,1],[1,0,1],[1,1,1],[0,1,1]],
-  'R':[[1,1,0],[1,0,1],[1,1,0],[1,1,0],[1,0,1]],
-  'S':[[0,1,1],[1,0,0],[0,1,0],[0,0,1],[1,1,0]],
-  'T':[[1,1,1],[0,1,0],[0,1,0],[0,1,0],[0,1,0]],
-  'U':[[1,0,1],[1,0,1],[1,0,1],[1,0,1],[0,1,0]],
-  'V':[[1,0,1],[1,0,1],[1,0,1],[1,0,1],[0,1,0]],
-  'W':[[1,0,1],[1,0,1],[1,1,1],[1,1,1],[1,0,1]],
-  'X':[[1,0,1],[1,0,1],[0,1,0],[1,0,1],[1,0,1]],
-  'Y':[[1,0,1],[1,0,1],[0,1,0],[0,1,0],[0,1,0]],
-  'Z':[[1,1,1],[0,0,1],[0,1,0],[1,0,0],[1,1,1]],
-  '0':[[0,1,0],[1,0,1],[1,0,1],[1,0,1],[0,1,0]],
-  '1':[[0,1,0],[1,1,0],[0,1,0],[0,1,0],[1,1,1]],
-  '2':[[1,1,0],[0,0,1],[0,1,0],[1,0,0],[1,1,1]],
-  '3':[[1,1,0],[0,0,1],[0,1,0],[0,0,1],[1,1,0]],
-  '4':[[1,0,1],[1,0,1],[1,1,1],[0,0,1],[0,0,1]],
-  '5':[[1,1,1],[1,0,0],[1,1,0],[0,0,1],[1,1,0]],
-  '6':[[0,1,1],[1,0,0],[1,1,0],[1,0,1],[0,1,0]],
-  '7':[[1,1,1],[0,0,1],[0,1,0],[0,1,0],[0,1,0]],
-  '8':[[0,1,0],[1,0,1],[0,1,0],[1,0,1],[0,1,0]],
-  '9':[[0,1,0],[1,0,1],[0,1,1],[0,0,1],[0,1,0]],
-  '!':[[0,1,0],[0,1,0],[0,1,0],[0,0,0],[0,1,0]],
-  '?':[[1,1,0],[0,0,1],[0,1,0],[0,0,0],[0,1,0]],
-  '→':[[0,0,0],[0,1,0],[1,1,1],[0,1,0],[0,0,0]],
-  '★':[[0,1,0],[1,1,1],[0,1,0],[1,0,1],[0,0,0]],
-  '▶':[[1,0,0],[1,1,0],[1,1,1],[1,1,0],[1,0,0]],
-  '◀':[[0,0,1],[0,1,1],[1,1,1],[0,1,1],[0,0,1]],
-};
-
-function drawPixelText(ctx, text, x, y, color, ps) {
-  const pxSz = ps || 2;
-  const str = text.toUpperCase();
-  let cx = x;
-  ctx.fillStyle = color || '#FFD700';
-  for (let i = 0; i < str.length; i++) {
-    const ch = PIXEL_CHARS[str[i]];
-    if (!ch) { cx += pxSz * 4; continue; }
-    for (let r = 0; r < 5; r++) {
-      for (let c = 0; c < ch[r].length; c++) {
-        if (ch[r][c]) ctx.fillRect(cx + c * pxSz, y + r * pxSz, pxSz, pxSz);
-      }
-    }
-    cx += (ch[0].length + 1) * pxSz;
-  }
-  return cx;
-}
-
-// ═══════════════════════════════════════════════════════
-//  MAIN RENDER
-// ═══════════════════════════════════════════════════════
-let npcTalkCooldown = {};
-let particleSystem = [];
-
-function addParticle(x, y, color) {
-  for (let i = 0; i < 6; i++) {
-    particleSystem.push({
-      x, y, vx: (Math.random()-0.5)*3, vy: -(Math.random()*3+1),
-      life: 40, maxLife: 40, color
+function addParticle(x, y, color, type='spark') {
+  const cnt = type === 'burst' ? 20 : type === 'dust' ? 4 : 8;
+  for (let i = 0; i < cnt; i++) {
+    particles.push({
+      x, y, 
+      vx: (Math.random()-0.5) * (type==='burst'?12:5), 
+      vy: (type==='dust' ? -Math.random()*2 : -Math.random()*8-3),
+      life: type==='dust' ? 25 : 50, maxLife: 50, color, type,
+      size: Math.random() * 8 + 4
     });
   }
 }
 
+function addFloatingText(x, y, text, color) {
+    particles.push({
+        x, y, vx: 0, vy: -2, life: 80, maxLife: 80, text, color, type: 'text'
+    });
+}
+
 function updateParticles() {
-  particleSystem = particleSystem.filter(p => {
-    p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.life--;
+  particles = particles.filter(p => {
+    p.x += p.vx; p.y += p.vy; 
+    if(p.type !== 'text') p.vy += 0.35; // gravity
+    p.life--;
     return p.life > 0;
   });
 }
 
-function drawParticles() {
-  particleSystem.forEach(p => {
+function drawPixelText(ctx, text, x, y, color, scale=2) {
+    ctx.fillStyle = color;
+    ctx.font = `${8*scale}px 'Press Start 2P'`;
+    ctx.fillText(text, x, y);
+}
+
+function drawParticles(ctx, camX) {
+  particles.forEach(p => {
     const alpha = p.life / p.maxLife;
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = p.color;
-    ctx.fillRect(Math.round(p.x), Math.round(p.y), 3, 3);
+    if (p.type === 'text') {
+        ctx.fillStyle = '#0f172a'; // shadow
+        ctx.font = `24px 'Press Start 2P'`;
+        ctx.fillText(p.text, p.x - camX + 3, p.y + 3);
+        ctx.fillStyle = p.color;
+        ctx.fillText(p.text, p.x - camX, p.y);
+    } else {
+        ctx.fillStyle = p.color;
+        ctx.fillRect(Math.round(p.x - camX), Math.round(p.y), p.size, p.size);
+    }
   });
   ctx.globalAlpha = 1;
 }
 
-let coinAnim = 0;
-let npcBob = 0;
-
-function render() {
-  const t = Date.now();
-  coinAnim = (coinAnim + 0.04) % (Math.PI * 2);
-  npcBob = Math.sin(t * 0.002) * 2;
-
-  ctx.fillStyle = '#050510';
-  ctx.fillRect(0, 0, W, H);
-
-  if (GS.phase === 'title' || GS.phase === 'map' || GS.phase === 'lc') return;
-
-  const lv = LEVELS[GS.lvl];
-  const FY = getFloorY();
-  const CEIL_Y = Math.floor(H * 0.18);
-
-  // === BACKGROUND GRADIENT ===
-  const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, lv.bgTop);
-  bg.addColorStop(1, lv.bgBot);
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
-
-  // === CEILING ===
-  const [wr, wg, wb] = lv.wallCol;
-  ctx.fillStyle = `rgb(${wr},${wg},${wb})`;
-  ctx.fillRect(0, CEIL_Y, W, 16);
-
-  // Ceiling lights
-  for (let lx = 80; lx < W + camX % 160; lx += 160) {
-    const sx = lx - (camX % 160);
-    ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.3)`;
-    ctx.fillRect(sx - 20, CEIL_Y - 4, 40, 6);
-    // Light cone
-    ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.05)`;
-    ctx.beginPath();
-    ctx.moveTo(sx - 20, CEIL_Y + 6);
-    ctx.lineTo(sx - 60, FY);
-    ctx.lineTo(sx + 60, FY);
-    ctx.lineTo(sx + 20, CEIL_Y + 6);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  // === BACK WALL ===
-  const [fr, fg_, fb] = lv.floorCol;
-  ctx.fillStyle = `rgb(${Math.floor(fr*0.5)},${Math.floor(fg_*0.5)},${Math.floor(fb*0.5)})`;
-  ctx.fillRect(0, CEIL_Y + 16, W, FY - CEIL_Y - 16);
-
-  // Wall tiles (pixel art pattern)
-  const tileScl = 5;
-  const tileW = 8 * tileScl;
-  const tileH = 8 * tileScl;
-  const wallPal = { 4: lv.wallCol, 6: [wr*0.4,wg*0.4,wb*0.4].map(Math.floor), 7: [wr+30,wg+30,wb+30].map(v=>Math.min(255,Math.floor(v))) };
-  for (let ty = CEIL_Y + 16; ty < FY - tileH; ty += tileH) {
-    for (let tx = -(camX % tileW) - tileW; tx < W + tileW; tx += tileW) {
-      // Simple brick pattern
-      const row = Math.floor((ty - CEIL_Y) / tileH);
-      const offset = (row % 2) * Math.floor(tileW / 2);
-      ctx.strokeStyle = `rgba(${wr+15},${wg+15},${wb+15},0.4)`;
-      ctx.lineWidth = 1;
-      ctx.strokeRect(tx + offset - (camX % Math.floor(tileW/2)) % tileW, ty, tileW, tileH);
+function spawnLevelCoins(lv) {
+    actCoins = [];
+    if(lv.coins) {
+        lv.coins.forEach(cx => {
+            actCoins.push({ x: cx, y: getFloorY() - 110 - Math.random()*50, collected: false, phase: Math.random()*Math.PI*2 });
+        });
     }
-  }
-
-  // === FLOOR ===
-  const flrGrad = ctx.createLinearGradient(0, FY, 0, H);
-  flrGrad.addColorStop(0, `rgb(${fr},${fg_},${fb})`);
-  flrGrad.addColorStop(0.3, `rgb(${Math.floor(fr*0.7)},${Math.floor(fg_*0.7)},${Math.floor(fb*0.7)})`);
-  flrGrad.addColorStop(1, '#000');
-  ctx.fillStyle = flrGrad;
-  ctx.fillRect(0, FY, W, H - FY);
-
-  // Floor tile lines
-  const ftW = 48;
-  ctx.strokeStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.15)`;
-  ctx.lineWidth = 1;
-  for (let fx = (-camX % ftW + ftW) % ftW - ftW; fx < W + ftW; fx += ftW) {
-    ctx.beginPath(); ctx.moveTo(fx, FY); ctx.lineTo(fx, H); ctx.stroke();
-  }
-  // Floor highlight line
-  ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.6)`;
-  ctx.fillRect(0, FY, W, 2);
-
-  // === DECORATIONS ===
-  lv.deco.forEach(d => {
-    const sx = d.wx - camX;
-    if (sx < -80 || sx > W + 80) return;
-    const s = d.spr;
-    const sprSize = s.length;
-    const baseY = FY - sprSize * SCALE;
-    drawSprite(ctx, s, sx - (sprSize * SCALE) / 2, baseY, null, false);
-  });
-
-  // === DOOR ===
-  {
-    const dw = lv.door;
-    const sx = dw.wx - camX;
-    if (sx > -100 && sx < W + 100) {
-      const glow = 0.5 + Math.sin(coinAnim * 2) * 0.3;
-      ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 20 * glow;
-      drawSprite(ctx, SPR_DOOR, sx - 24, FY - 50, null, false);
-      ctx.shadowBlur = 0;
-      // Label
-      const playerNear = Math.abs(plr.wx - dw.wx) < 100;
-      if (playerNear) {
-        ctx.fillStyle = '#FFD700';
-        ctx.fillRect(sx - 40, FY - 62, 80, 14);
-        ctx.fillStyle = '#000';
-        drawPixelText(ctx, dw.label, sx - 36, FY - 60, '#000', 1.5);
-      }
-    }
-  }
-
-  // === NPCs ===
-  lv.npcs.forEach((npc, ni) => {
-    const sx = npc.wx - camX;
-    if (sx < -100 || sx > W + 100) return;
-    const sprSize = 16;
-    const npcY = FY - sprSize * SCALE - 2;
-    const bob = Math.sin(Date.now() * 0.002 + ni) * 2;
-
-    // Shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    ctx.beginPath();
-    ctx.ellipse(sx, FY - 4, 18, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    const spr = NPC_SPRS[npc.sprIdx] || SPR_TELLER;
-    drawSprite(ctx, spr, sx - sprSize * SCALE / 2, npcY + bob, null, false);
-
-    // Name + bubble when near
-    const dist = Math.abs(plr.wx - npc.wx);
-    if (dist < 90) {
-      // Name tag
-      ctx.fillStyle = npc.color || '#FFD700';
-      const nameY = npcY + bob - 16;
-      ctx.fillRect(sx - 44, nameY, 88, 12);
-      ctx.fillStyle = '#000';
-      drawPixelText(ctx, npc.name.slice(0, 8), sx - 41, nameY + 2, '#000', 1.5);
-
-      // Chat bubble bounce
-      const bubbleY = nameY - 16;
-      ctx.fillStyle = 'rgba(0,0,0,0.8)';
-      ctx.fillRect(sx - 20, bubbleY, 40, 12);
-      ctx.fillStyle = npc.color;
-      ctx.fillRect(sx - 18, bubbleY + 1, 36, 10);
-      ctx.fillStyle = '#000';
-      drawPixelText(ctx, 'A:ЯРИА', sx - 17, bubbleY + 3, '#000', 1.5);
-    }
-  });
-
-  // === PLAYER ===
-  updatePlayer();
-  const FY2 = getFloorY();
-  const pSprSize = 16;
-  const pSprW = pSprSize * SCALE;
-  const pSprH = pSprSize * SCALE;
-  const pScreenX = plr.wx - camX;
-  const pY = FY2 - pSprH;
-
-  // Shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.beginPath();
-  ctx.ellipse(pScreenX, FY2 - 4, 16, 4, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Animate frames
-  const frames = [SPR_PLAYER_IDLE, SPR_PLAYER_W1, SPR_PLAYER_W2, SPR_PLAYER_W1];
-  const isWalking = inp.left || inp.right;
-  plr.fTimer++;
-  if (plr.fTimer > 8) { plr.fTimer = 0; plr.frame = (plr.frame + 1) % 4; }
-  const curFrame = isWalking ? frames[plr.frame] : SPR_PLAYER_IDLE;
-  const pal = getPlayerPal(GS.av);
-  drawSprite(ctx, curFrame, pScreenX - pSprW / 2, pY, pal, plr.facing < 0);
-
-  // Particles
-  updateParticles();
-  drawParticles();
-
-  // === HUD OVERLAY ===
-  // Minimap
-  const mmW = 80, mmH = 8, mmX = W - mmW - 8, mmY = 48;
-  ctx.fillStyle = 'rgba(0,0,0,0.7)';
-  ctx.fillRect(mmX - 2, mmY - 2, mmW + 4, mmH + 4);
-  ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.4)`;
-  ctx.fillRect(mmX, mmY, mmW, mmH);
-  // Player dot on minimap
-  const mmPx = mmX + Math.floor((plr.wx / lv.worldW) * mmW);
-  ctx.fillStyle = '#FFD700';
-  ctx.fillRect(mmPx - 2, mmY - 1, 4, mmH + 2);
-  // Door dot
-  const mmDx = mmX + Math.floor((lv.door.wx / lv.worldW) * mmW);
-  ctx.fillStyle = '#ff5555';
-  ctx.fillRect(mmDx - 1, mmY, 2, mmH);
-
-  // Level number pixel text
-  ctx.fillStyle = 'rgba(0,0,0,0.6)';
-  ctx.fillRect(mmX - 2, mmY + mmH + 2, mmW + 4, 10);
-  drawPixelText(ctx, `LVL ${GS.lvl + 1}/4`, mmX, mmY + mmH + 4, `rgb(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]})`, 1.5);
-
-  // Walk hint if very start
-  if (plr.wx < 150 && GS.lvl === 0) {
-    ctx.fillStyle = 'rgba(0,0,0,0.7)';
-    ctx.fillRect(W / 2 - 70, H * 0.45, 140, 16);
-    drawPixelText(ctx, '◀ ▶ АЛХАХ', W / 2 - 54, H * 0.45 + 3, '#FFD700', 2);
-  }
 }
 
-// ═══════════════════════════════════════════════════════
-//  PLAYER MOVEMENT
-// ═══════════════════════════════════════════════════════
+function triggerShake(amt) { screenShake = amt; }
+
+function getFloorY() { return Math.floor(H * 0.72); }
+
+let animTime = 0;
+
+function drawParallaxBackground(ctx, lv, camX) {
+    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, lv.bgTop); bg.addColorStop(1, lv.bgBot);
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+    const FY = getFloorY();
+    
+    // Theme specific layers
+    if (lv.theme === 'city') {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        for(let i=0; i<6; i++) {
+            let cx = (i * 350 + animTime * 10 - camX * 0.05) % (W + 400) - 200;
+            let cy = 80 + Math.sin(i)*60;
+            ctx.beginPath(); ctx.ellipse(cx, cy, 90, 35, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(cx+45, cy-25, 55, 35, 0, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.fillStyle = '#64748b'; // far layer
+        for(let i=0; i<30; i++) {
+            let bx = (i * 150 - camX * 0.1) % (W + 300) - 150;
+            if(bx < -200) bx += (W+400);
+            let bh = 150 + (i%5)*60;
+            ctx.fillRect(bx, FY - bh, 100, bh);
+        }
+        ctx.fillStyle = '#475569'; // mid layer
+        for(let i=0; i<20; i++) {
+            let bx = (i * 220 - camX * 0.3) % (W + 300) - 150;
+            if(bx < -200) bx += (W+400);
+            let bh = 100 + (i%3)*80;
+            ctx.fillRect(bx, FY - bh, 130, bh);
+            ctx.fillStyle = '#fef08a22';
+            if(i%2===0) ctx.fillRect(bx+30, FY-bh+30, 30, 30);
+            ctx.fillStyle = '#475569';
+        }
+    } else if (lv.theme === 'matrix') {
+        ctx.fillStyle = '#34d39933';
+        for(let i=0; i<W; i+=60) {
+            let dropY = (Date.now()*0.15 + i*15) % H;
+            ctx.fillRect((i - camX*0.2)%W, dropY, 8, 90);
+        }
+        ctx.fillStyle = '#05966955';
+        for(let i=0; i<W; i+=100) {
+            let dropY = (Date.now()*0.25 + i*9) % H;
+            ctx.fillRect((i - camX*0.5)%W, dropY, 14, 150);
+        }
+    } else if (lv.theme === 'cyber') {
+        ctx.strokeStyle = '#818cf844'; ctx.lineWidth = 3;
+        ctx.beginPath();
+        for(let i=0; i<W; i+=80) {
+            let x = (i - camX*0.2)%W;
+            ctx.moveTo(x, 0); ctx.lineTo(x, FY);
+        }
+        for(let y=0; y<FY; y+=80) {
+            ctx.moveTo(0, y); ctx.lineTo(W, y);
+        }
+        ctx.stroke();
+    } else if (lv.theme === 'future') {
+        for(let i=0; i<25; i++) {
+            let bx = (i * 200 - camX * 0.2) % (W + 300) - 150;
+            let h = 100 + (Math.sin(i + Date.now()*0.001)*0.5+0.5) * 350;
+            let grad = ctx.createLinearGradient(0, FY-h, 0, FY);
+            grad.addColorStop(0, '#facc1588'); grad.addColorStop(1, '#facc1500');
+            ctx.fillStyle = grad;
+            ctx.fillRect(bx, FY-h, 90, h);
+        }
+    }
+}
+
+function render() {
+  if (GS.phase === 'title' || GS.phase === 'map') return;
+  const t = Date.now();
+  animTime = t * 0.005;
+
+  let sx = 0, sy = 0;
+  if (screenShake > 0) {
+      sx = (Math.random()-0.5) * screenShake;
+      sy = (Math.random()-0.5) * screenShake;
+      screenShake *= 0.85;
+      if (screenShake < 0.5) screenShake = 0;
+  }
+
+  ctx.save();
+  ctx.translate(sx, sy);
+
+  const lv = LEVELS[GS.lvl];
+  if(!lv) { ctx.restore(); return; }
+  const FY = getFloorY();
+  const CEIL_Y = Math.floor(H * 0.25);
+
+  drawParallaxBackground(ctx, lv, camX);
+
+  // Back Wall
+  const [wr, wg, wb] = lv.wallCol;
+  ctx.fillStyle = `rgb(${wr},${wg},${wb})`;
+  ctx.fillRect(0, CEIL_Y, W, FY - CEIL_Y);
+
+  // Wall Grid Pattern
+  ctx.strokeStyle = `rgba(255,255,255,0.08)`;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let y = CEIL_Y; y <= FY; y += 50) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+  for (let x = -(camX % 60); x < W; x += 60) { ctx.moveTo(x, CEIL_Y); ctx.lineTo(x, FY); }
+  ctx.stroke();
+
+  // Wall Monitors / Posters
+  for (let mx = 300; mx < lv.worldW; mx += 450) {
+      const screenX = mx - camX;
+      if (screenX > -150 && screenX < W + 150) {
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(screenX, CEIL_Y + 50, 150, 100);
+        
+        const glow = Math.sin(t * 0.005 + mx) * 0.15 + 0.25;
+        ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},${glow})`;
+        ctx.fillRect(screenX + 5, CEIL_Y + 55, 140, 90);
+
+        ctx.fillStyle = `rgba(255,255,255,0.6)`;
+        ctx.fillRect(screenX + 20, CEIL_Y + 110, 20, 25);
+        ctx.fillRect(screenX + 50, CEIL_Y + 90, 20, 45);
+        ctx.fillRect(screenX + 80, CEIL_Y + 70, 20, 65);
+        ctx.fillRect(screenX + 110, CEIL_Y + 100, 20, 35);
+      }
+  }
+
+  // Wall Pillars / Lights
+  ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.2)`;
+  for (let lx = 0; lx < W + 300; lx += 300) {
+    const startX = lx - (camX % 300);
+    ctx.fillRect(startX, CEIL_Y, 35, FY - CEIL_Y);
+    let glowAlpha = 0.25 + Math.sin(t*0.003 + lx)*0.15;
+    ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},${glowAlpha})`;
+    ctx.fillRect(startX-50, CEIL_Y, 135, 18);
+    ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.2)`;
+  }
+
+  // Floor
+  const [fr, fg_, fb] = lv.floorCol;
+  const flrGrad = ctx.createLinearGradient(0, FY, 0, H);
+  flrGrad.addColorStop(0, `rgb(${fr},${fg_},${fb})`);
+  flrGrad.addColorStop(0.3, `rgb(${Math.floor(fr*0.6)},${Math.floor(fg_*0.6)},${Math.floor(fb*0.6)})`);
+  flrGrad.addColorStop(1, '#0f172a');
+  ctx.fillStyle = flrGrad;
+  ctx.fillRect(0, FY, W, H - FY);
+  
+  // Floor Tiles Pattern
+  ctx.strokeStyle = `rgba(0,0,0,0.2)`;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for(let y = FY; y < H; y += 35) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+  for(let x = -(camX % 60); x < W + 150; x += 60) { 
+      ctx.moveTo(x, FY); ctx.lineTo(x - (H-FY)*0.6, H); // Skew
+  }
+  ctx.stroke();
+
+  // Floor accent line
+  ctx.fillStyle = `rgb(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]})`;
+  ctx.fillRect(0, FY, W, 8);
+
+  // Ambient Particles
+  if(Math.random() < 0.15) addParticle(Math.random()*W + camX, Math.random()*H, `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.6)`, 'dust');
+
+  // Decorations
+  lv.deco.forEach(d => {
+    const dx = d.wx - camX;
+    if (dx < -150 || dx > W + 150) return;
+    const sprSize = d.spr.length;
+    drawSprite(ctx, d.spr, dx - (sprSize * SCALE) / 2, FY - sprSize * SCALE, null, false);
+  });
+
+  // Door
+  const dw = lv.door;
+  const dScreenX = dw.wx - camX;
+  if (dScreenX > -150 && dScreenX < W + 150) {
+    const glow = 0.6 + Math.sin(t * 0.005) * 0.4;
+    ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 40 * glow;
+    drawSprite(ctx, SPR_DOOR, dScreenX - 40, FY - 16 * SCALE, null, false);
+    ctx.shadowBlur = 0;
+    
+    if (Math.abs(plr.wx - dw.wx) < 140) {
+      ctx.fillStyle = 'rgba(15,23,42,0.9)';
+      ctx.fillRect(dScreenX - 80, FY - 120, 160, 30);
+      drawPixelText(ctx, dw.label, dScreenX - 65, FY - 98, '#FFD700', 1.8);
+    }
+  }
+
+  // Coins
+  actCoins.forEach(c => {
+      if(c.collected) return;
+      let cx = c.x - camX;
+      if(cx < -50 || cx > W+50) return;
+      let cy = c.y + Math.sin(animTime + c.phase)*18;
+      
+      let width = Math.abs(Math.cos(animTime*2 + c.phase)) * 30;
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath(); ctx.ellipse(cx, cy, Math.max(5, width/2), 16, 0, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#fef08a';
+      ctx.beginPath(); ctx.ellipse(cx, cy, Math.max(3, width/4), 10, 0, 0, Math.PI*2); ctx.fill();
+  });
+
+  // NPCs
+  lv.npcs.forEach((npc, ni) => {
+    const nx = npc.wx - camX;
+    if (nx < -150 || nx > W + 150) return;
+    const nY = FY - 16 * SCALE;
+    const bob = Math.sin(t * 0.003 + ni) * 8;
+
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.beginPath(); ctx.ellipse(nx, FY - 8, 30, 10, 0, 0, Math.PI * 2); ctx.fill();
+
+    const spr = NPC_SPRS[npc.sprIdx] || SPR_TELLER;
+    drawSprite(ctx, spr, nx - 16 * SCALE / 2, nY + bob, null, false);
+
+    const dist = Math.abs(plr.wx - npc.wx);
+    if (dist < 130) {
+        let tagY = nY + bob - 35;
+        ctx.fillStyle = 'rgba(15,23,42,0.95)';
+        ctx.fillRect(nx - 65, tagY - 24, 130, 28);
+        drawPixelText(ctx, 'A: ЯРИХ', nx - 48, tagY - 4, npc.color || '#FFD700', 1.8);
+        
+        let ay = tagY - 40 + Math.sin(t*0.01)*10;
+        ctx.fillStyle = '#FFD700';
+        ctx.beginPath(); ctx.moveTo(nx-10, ay); ctx.lineTo(nx+10, ay); ctx.lineTo(nx, ay+10); ctx.fill();
+    }
+  });
+
+  // PLAYER
+  updatePlayer();
+  const pScreenX = plr.wx - camX;
+  
+  const isWalking = inp.left || inp.right;
+  let idleBob = isWalking ? 0 : Math.sin(t * 0.004) * 5;
+  const pY = FY - plr.sprH + idleBob;
+
+  let shadowWidth = isWalking ? 26 : 30 + Math.sin(t * 0.004) * 3;
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.beginPath(); ctx.ellipse(pScreenX, FY - 8, shadowWidth, 10, 0, 0, Math.PI * 2); ctx.fill();
+
+  if (isWalking) {
+      plr.fTimer++;
+      if (plr.fTimer > 6) { plr.fTimer = 0; plr.frame = (plr.frame + 1) % 4; }
+      if (plr.fTimer === 0 && Math.random() < 0.6) addParticle(plr.wx, FY, '#94a3b8', 'dust');
+  } else {
+      plr.frame = 0;
+  }
+  const frames = [SPR_PLAYER_IDLE, SPR_PLAYER_W1, SPR_PLAYER_W2, SPR_PLAYER_W1];
+  const curFrame = isWalking ? frames[plr.frame] : SPR_PLAYER_IDLE;
+  drawSprite(ctx, curFrame, pScreenX - plr.sprW / 2, pY, getPlayerPal(GS.av), plr.facing < 0);
+
+  // Particles
+  drawParticles(ctx, camX);
+
+  // HUD Minimap
+  if (GS.phase === 'playing' || GS.phase === 'dialog') {
+      const mmW = 180, mmH = 20, mmX = W - mmW - 35, mmY = 110;
+      ctx.fillStyle = 'rgba(15,23,42,0.9)'; ctx.fillRect(mmX - 8, mmY - 8, mmW + 16, mmH + 16);
+      ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.35)`;
+      ctx.fillRect(mmX, mmY, mmW, mmH);
+      const mmPx = mmX + Math.max(0, Math.min(1, plr.wx / lv.worldW)) * mmW;
+      ctx.fillStyle = '#FFD700'; ctx.fillRect(mmPx - 5, mmY - 5, 10, mmH + 10);
+      const mmDx = mmX + (lv.door.wx / lv.worldW) * mmW;
+      ctx.fillStyle = '#fca5a5'; ctx.fillRect(mmDx - 4, mmY, 8, mmH);
+  }
+
+  ctx.restore();
+}
+
 function updatePlayer() {
   if (GS.phase !== 'playing') return;
   const lv = LEVELS[GS.lvl];
@@ -1310,30 +1237,37 @@ function updatePlayer() {
 
   if (inp.left) { plr.wx -= plr.spd; plr.facing = -1; }
   if (inp.right) { plr.wx += plr.spd; plr.facing = 1; }
-  plr.wx = Math.max(20, Math.min(lv.worldW - 20, plr.wx));
+  plr.wx = Math.max(50, Math.min(lv.worldW - 50, plr.wx));
 
-  // Camera: keep player in center band
-  const dL = W * 0.38, dR = W * 0.62;
-  const sx = plr.wx - camX;
-  if (sx < dL) camX = Math.max(0, plr.wx - dL);
-  else if (sx > dR) camX = Math.min(lv.worldW - W, plr.wx - dR);
+  actCoins.forEach(c => {
+      if(!c.collected && Math.abs(plr.wx - c.x) < 55) {
+          c.collected = true;
+          addParticle(c.x, c.y, '#FFD700', 'burst');
+          addFloatingText(c.x, c.y - 35, '+10', '#FFD700');
+          earnPts(10, ''); 
+          triggerShake(10);
+      }
+  });
 
-  // Auto-trigger door
-  if (Math.abs(plr.wx - lv.door.wx) < 30) {
-    triggerDoor();
-  }
+  const dL = W * 0.4, dR = W * 0.6;
+  const sx = plr.wx - targetCamX;
+  if (sx < dL) targetCamX = Math.max(0, plr.wx - dL);
+  else if (sx > dR) targetCamX = Math.min(lv.worldW - W, plr.wx - dR);
+  
+  camX += (targetCamX - camX) * 0.12; 
+
+  if (Math.abs(plr.wx - lv.door.wx) < 60) triggerDoor();
 }
 
-// ═══════════════════════════════════════════════════════
-//  INTERACTION
-// ═══════════════════════════════════════════════════════
+let npcCooldown = 0;
 function interact() {
   if (GS.phase === 'dialog') { advDlg(); return; }
   if (GS.phase !== 'playing') return;
+  if (Date.now() < npcCooldown) return;
+  
   const lv = LEVELS[GS.lvl];
-  if (!lv) return;
   for (const npc of lv.npcs) {
-    if (Math.abs(plr.wx - npc.wx) < 80) {
+    if (Math.abs(plr.wx - npc.wx) < 130) {
       triggerNPC(npc);
       return;
     }
@@ -1347,22 +1281,12 @@ function triggerDoor() {
 }
 
 function triggerNPC(npc) {
-  if (npcTalkCooldown[npc.wx] > Date.now()) return;
-  npcTalkCooldown[npc.wx] = Date.now() + 800;
-  addParticle(npc.wx - camX, getFloorY() - 60, npc.color || '#FFD700');
+  npcCooldown = Date.now() + 500;
+  addParticle(npc.wx, getFloorY() - 110, npc.color || '#FFD700', 'burst');
 
-  if (npc.trigger === 'finalEnd') {
-    startDialog(npc.dialog, npc, () => triggerEnd());
-    return;
-  }
-  if (npc.mg) {
-    startDialog(npc.dialog, npc, () => openMG(npc.mg));
-    return;
-  }
-  if (npc.quiz) {
-    startDialog(npc.dialog, npc, () => startQuiz(npc.quiz));
-    return;
-  }
+  if (npc.trigger === 'finalEnd') { startDialog(npc.dialog, npc, () => triggerEnd()); return; }
+  if (npc.mg) { startDialog(npc.dialog, npc, () => openMG(npc.mg)); return; }
+  if (npc.quiz) { startDialog(npc.dialog, npc, () => startQuiz(npc.quiz)); return; }
   startDialog(npc.dialog, npc, null);
 }
 
@@ -1371,27 +1295,31 @@ function triggerEnd() {
   showFinalComplete();
 }
 
-// ═══════════════════════════════════════════════════════
-//  DIALOG SYSTEM
-// ═══════════════════════════════════════════════════════
 let dlgQueue = [], dlgIdx = 0, dlgCb = null, dlgNPC = null;
 
 function startDialog(msgs, npc, cb) {
   GS.phase = 'dialog';
   dlgQueue = msgs; dlgIdx = 0; dlgCb = cb; dlgNPC = npc;
+  inp.left = false; inp.right = false; 
   renderDlgStep();
 }
 
 function renderDlgStep() {
   const msg = dlgQueue[dlgIdx];
   if (!msg) { closeDlg(); return; }
-  // Draw NPC face
-  if (dlgNPC) drawNPCFace(document.getElementById('dlg-face'), dlgNPC.faceIdx || 0);
-  document.getElementById('dlg-name').textContent = msg.speaker || '';
-  document.getElementById('dlg-text').textContent = msg.text;
-  document.getElementById('dlg-cont').style.display = dlgIdx < dlgQueue.length - 1 ? 'block' : 'none';
-  document.getElementById('dlg-choices').innerHTML = '';
-  document.getElementById('dlg').classList.add('open');
+  
+  const dlgEl = document.getElementById('dlg');
+  dlgEl.classList.remove('open');
+  
+  setTimeout(() => {
+      if (dlgNPC) drawNPCFace(document.getElementById('dlg-face'), dlgNPC.faceIdx || 0);
+      document.getElementById('dlg-name').textContent = msg.speaker || '';
+      document.getElementById('dlg-name').style.color = dlgNPC ? (dlgNPC.color || '#FFD700') : '#FFD700';
+      document.getElementById('dlg-text').textContent = msg.text;
+      document.getElementById('dlg-cont').style.display = dlgIdx < dlgQueue.length - 1 ? 'block' : 'none';
+      document.getElementById('dlg-choices').innerHTML = '';
+      dlgEl.classList.add('open');
+  }, 10);
 }
 
 function advDlg() {
@@ -1412,33 +1340,39 @@ function closeDlg() {
 function startQuiz(quiz) {
   GS.phase = 'dialog';
   document.getElementById('dlg-name').textContent = '❓ АСУУЛТ';
+  document.getElementById('dlg-name').style.color = '#fff';
   document.getElementById('dlg-text').textContent = quiz.q;
   document.getElementById('dlg-cont').style.display = 'none';
   document.getElementById('dlg').classList.add('open');
   const ca = document.getElementById('dlg-choices');
   ca.innerHTML = '';
   let answered = false;
-  (quiz.ch || []).forEach(c => {
+  
+  quiz.ch.forEach(c => {
     const btn = document.createElement('button');
     btn.className = 'dlg-choice';
-    btn.textContent = (c.i || '') + '  ' + (c.t || c.text || '');
+    btn.innerHTML = `<span style="font-size:24px">${c.i}</span> <span>${c.t}</span>`;
     btn.onclick = () => {
       if (answered) return; answered = true;
       btn.className = 'dlg-choice ' + (c.ok ? 'ok' : 'ng');
+      if(c.ok) triggerShake(15); else triggerShake(10);
       earnPts(c.ok ? quiz.rw : Math.floor(quiz.rw * 0.3), c.ok ? 'ЗӨВ ХАРИУЛТ' : 'ХАРИУЛТ');
       ca.innerHTML = '';
+      
       const fb = document.createElement('div');
-      fb.style.cssText = `padding:10px 14px;font-size:8px;line-height:1.8;color:${c.ok?'#50fa7b':'#ff5555'}`;
+      fb.style.cssText = `padding:22px;font-size:13px;line-height:1.8;color:${c.ok?'#50fa7b':'#ff5555'}; text-shadow: 1px 1px 0 #000;`;
       fb.textContent = c.ok ? quiz.gf : quiz.bf;
       ca.appendChild(fb);
+      
       if (quiz.info) {
         const inf = document.createElement('div');
-        inf.style.cssText = 'padding:8px 14px;font-size:7px;color:#8888cc;line-height:1.8;border-top:1px solid #222;';
+        inf.style.cssText = 'padding:18px 22px;font-size:11px;color:#93c5fd;line-height:1.8;border-top:2px dashed #475569; background:rgba(0,0,0,0.5);';
         inf.textContent = quiz.info;
         ca.appendChild(inf);
       }
+      
       const nb = document.createElement('button');
-      nb.className = 'dlg-choice';
+      nb.className = 'dlg-choice'; nb.style.justifyContent = 'center'; nb.style.color = '#FFD700';
       nb.textContent = '▶ ҮРГЭЛЖЛҮҮЛЭХ';
       nb.onclick = () => { closeDlg(); if(dlgCb){const cb=dlgCb;dlgCb=null;cb();} };
       ca.appendChild(nb);
@@ -1447,12 +1381,9 @@ function startQuiz(quiz) {
   });
 }
 
-// ═══════════════════════════════════════════════════════
-//  MINI GAMES
-// ═══════════════════════════════════════════════════════
 const MG_DEFS = {
   budget:   {title:'★ САРЫН ТӨСӨВ',    sub:'МӨНГӨӨ ЗӨВ ХУВААРИЛ'},
-  shopping: {title:'★ ДЭЛГҮҮР',         sub:'КАРТААРАА ТООЦОО ХИЙ'},
+  shopping: {title:'★ ДЭЛГҮҮР',        sub:'КАРТААРАА ТООЦОО ХИЙ'},
   gyalsbank:{title:'★ ГЯЛС БАНК',        sub:'МОБАЙЛ БАНКИНГИЙН ДААЛГАВАР'},
   phishing: {title:'★ КИБЕР АЮУЛГҮЙ',   sub:'ФИШИНГ ХАЛДЛАГААС ХАМГААЛАГД'},
   compare:  {title:'★ БАНКНЫ ХАРЬЦУУЛАЛТ',sub:'ТӨРИЙН БАНК VS REVOLUT'},
@@ -1467,7 +1398,8 @@ function openMG(id) {
   document.getElementById('mg-sub').textContent = def.sub;
   const body = document.getElementById('mg-body');
   body.innerHTML = '';
-  GS.phase = 'mg';
+  GS.phase = 'mg'; inp.left=false; inp.right=false;
+  
   const renders = {
     budget: renderMGBudget, shopping: renderMGShopping,
     gyalsbank: renderMGGylsBank, phishing: renderMGPhishing,
@@ -1483,387 +1415,237 @@ function closeMG() {
   GS.phase = 'playing';
 }
 
-// ── BUDGET ──
 function renderMGBudget(el) {
   const cats=[
-    {e:'🏠',n:'БАЙР',k:'rent',d:150000,m:250000},
-    {e:'🍽',n:'ХООЛ',k:'food',d:100000,m:200000},
-    {e:'🚌',n:'ЗОРЧИЛТ',k:'tx',d:50000,m:100000},
-    {e:'📚',n:'БОЛОВСРОЛ',k:'edu',d:50000,m:100000},
-    {e:'🎮',n:'ЗУГАА',k:'fun',d:50000,m:100000},
-    {e:'💰',n:'ХАДГАЛАМЖ',k:'save',d:100000,m:200000},
+    {e:'🏠',n:'БАЙР',k:'rent',d:150000,m:250000}, {e:'🍽',n:'ХООЛ',k:'food',d:100000,m:200000},
+    {e:'🚌',n:'УНАА',k:'tx',d:50000,m:100000}, {e:'📚',n:'СУРГУУЛЬ',k:'edu',d:50000,m:100000},
+    {e:'🎮',n:'ЗУГАА',k:'fun',d:50000,m:100000}, {e:'💰',n:'ХАДГАЛАМЖ',k:'save',d:100000,m:200000},
   ];
   const v={}; cats.forEach(c=>v[c.k]=c.d);
   const INC=500000; let done=false;
   el.innerHTML=`
-    <span class="px-label">САРЫН ОРЛОГО: <span style="color:#FFD700">₮500,000</span></span>
-    <div id="bg-rows"></div>
-    <div class="px-card" style="margin-top:8px">
-      <div class="px-row"><span>НИЙТ ЗАРЦУУЛАЛТ</span><span id="bg-used" style="color:#ff5555">₮500,000</span></div>
-      <div class="px-row"><span>ҮЛДЭХ</span><span id="bg-rem" style="color:#50fa7b">₮0</span></div>
+    <span class="px-label">ОРЛОГО: <span style="color:#FFD700">₮500,000</span></span>
+    <div id="bg-rows" class="px-card"></div>
+    <div class="px-card">
+      <div class="px-row"><span>ЗАРЦУУЛАЛТ</span><span id="bg-used" style="color:#ff5555">₮500,000</span></div>
+      <div class="px-row"><span>ҮЛДЭГДЭЛ</span><span id="bg-rem" style="color:#50fa7b">₮0</span></div>
     </div>
-    <div id="bg-warn" style="display:none;color:#ff5555;font-size:8px;padding:8px 0;">⚠ ЗАРЛАГА ХЭТЭРЛЭЭ!</div>
     <button class="px-btn gold" onclick="submitBG()">★ БАТАЛГААЖУУЛАХ</button>
     <div id="bg-res"></div>
   `;
   const rows=document.getElementById('bg-rows');
   cats.forEach(c=>{
-    const d=document.createElement('div'); d.className='budget-row';
-    d.innerHTML=`<label>${c.e} ${c.n}</label><input type="range" class="budget-slider" min="0" max="${c.m}" step="5000" value="${c.d}" id="bg-${c.k}" oninput="updBG('${c.k}',this.value)"><span class="bv" id="bgv-${c.k}">₮${fmt(c.d)}</span>`;
-    rows.appendChild(d);
+    rows.innerHTML+=`<div class="px-row" style="border:none"><span style="width:110px">${c.e} ${c.n}</span><input type="range" class="budget-slider" style="flex:1; margin:0 15px;" min="0" max="${c.m}" step="5000" value="${c.d}" oninput="updBG('${c.k}',this.value)"><span style="width:85px;text-align:right;color:#6495ED" id="bgv-${c.k}">₮${fmt(c.d)}</span></div>`;
   });
   window.updBG=(k,val)=>{
     v[k]=+val; document.getElementById(`bgv-${k}`).textContent=`₮${fmt(+val)}`;
-    const tot=Object.values(v).reduce((a,b)=>a+b,0);
-    const rem=INC-tot;
+    const tot=Object.values(v).reduce((a,b)=>a+b,0); const rem=INC-tot;
     document.getElementById('bg-used').textContent=`₮${fmt(tot)}`;
     document.getElementById('bg-used').style.color=rem>=0?'#50fa7b':'#ff5555';
     document.getElementById('bg-rem').textContent=`₮${fmt(Math.abs(rem))}${rem<0?' (ХЭТЭРСЭН)':''}`;
     document.getElementById('bg-rem').style.color=rem>=0?'#50fa7b':'#ff5555';
-    document.getElementById('bg-warn').style.display=rem<0?'block':'none';
   };
   window.submitBG=()=>{
     if(done)return;
     const tot=Object.values(v).reduce((a,b)=>a+b,0);
-    if(tot>INC){alert('ЗАРЛАГА ХЭТЭРЛЭЭ!');return;}
-    done=true;
-    const sp=Math.round(v.save/INC*100);
-    const pts=sp>=15?50:sp>=5?35:20;
-    earnPts(pts,'САРЫН ТӨСӨВ');
-    const res=document.getElementById('bg-res');
-    res.className='px-result ok'; res.textContent=`★ ${sp}% ХАДГАЛЖ БАЙНА. ${sp>=15?'МАSH САЙН!':sp>=5?'15%+ ЗОРЬoo!':'15%+ ХАДГАЛАХЫГ ЗОРЬ.'}`;
+    if(tot>INC){ triggerShake(15); toast('ЗАРЛАГА ХЭТЭРЛЭЭ!'); return; }
+    done=true; const sp=Math.round(v.save/INC*100);
+    earnPts(sp>=15?50:sp>=5?35:20,'САРЫН ТӨСӨВ'); triggerShake(12);
+    document.getElementById('bg-res').className='px-result ok'; 
+    document.getElementById('bg-res').textContent=`★ ${sp}% ХАДГАЛЛАА! ${sp>=15?'МАШ САЙН!':'15%+ ЗОРЬОРООЙ.'}`;
     setTimeout(closeMG,2500);
   };
 }
 
-// ── SHOPPING ──
 function renderMGShopping(el) {
-  const items=[
-    {e:'🍞',n:'ТАЛХ',p:3500},{e:'🥛',n:'СҮҮ',p:4200},
-    {e:'🥚',n:'ӨНДӨГ (10Ш)',p:8900},{e:'🍎',n:'АЛИМ',p:6000},
-    {e:'🧴',n:'ШАМПУНЬ',p:12000},{e:'🍜',n:'ГОЙМОН',p:3800},
-  ];
-  const sel=new Set(); let paid=false;
+  const items=[ {e:'🍞',n:'ТАЛХ',p:3500},{e:'🥛',n:'СҮҮ',p:4200}, {e:'🥚',n:'ӨНДӨГ',p:8900},{e:'🍎',n:'АЛИМ',p:6000} ];
+  let sel=new Set(), paid=false;
   el.innerHTML=`
-    <span class="px-label">ХЭРЭГЦЭЭТЭЙ ЗҮЙЛСИЙГ СОНГО</span>
-    <div id="sh-list"></div>
-    <div class="px-card" style="margin-top:10px">
-      <div class="px-row ttl"><span>НИЙТ</span><span id="sh-tot">₮0</span></div>
-      <div class="px-row"><span>ҮЛДЭГДЭЛ</span><span style="color:#6495ED">₮${fmt(GS.balance)}</span></div>
-    </div>
+    <div id="sh-list" class="px-card" style="padding:0; overflow:hidden;"></div>
+    <div class="px-card"><div class="px-row ttl"><span>НИЙТ</span><span id="sh-tot">₮0</span></div></div>
     <button class="px-btn gold" id="sh-btn" onclick="shPay()">💳 КАРТААР ТООЦОО</button>
     <div id="sh-res"></div>
   `;
-  const list=document.getElementById('sh-list');
   items.forEach((it,i)=>{
-    const b=document.createElement('button'); b.className='dlg-choice';
-    b.innerHTML=`<span>${it.e}</span><span style="flex:1;margin-left:8px">${it.n}</span><span style="color:#6495ED">₮${fmt(it.p)}</span>`;
+    let b=document.createElement('div'); b.className='px-row'; b.style.padding='22px'; b.style.cursor='pointer';
+    b.innerHTML=`<span><span style="font-size:26px;margin-right:15px">${it.e}</span><span style="font-size:13px">${it.n}</span></span><span style="color:#6495ED; font-size:13px;">₮${fmt(it.p)}</span>`;
     b.onclick=()=>{
-      if(paid)return;
-      sel.has(i)?sel.delete(i):sel.add(i);
-      b.style.borderTopColor=sel.has(i)?'#FFD700':'';b.style.background=sel.has(i)?'#0d0d2a':'';
-      let t=0;sel.forEach(idx=>t+=items[idx].p);
-      document.getElementById('sh-tot').textContent=`₮${fmt(t)}`;
+      if(paid)return; sel.has(i)?sel.delete(i):sel.add(i);
+      b.style.background=sel.has(i)?'rgba(100,149,237,0.25)':'';
+      let t=0; sel.forEach(idx=>t+=items[idx].p); document.getElementById('sh-tot').textContent=`₮${fmt(t)}`;
     };
-    list.appendChild(b);
+    document.getElementById('sh-list').appendChild(b);
   });
   window.shPay=()=>{
-    if(paid||sel.size===0){if(!sel.size)alert('ЗҮЙЛ СОНГОНО УУ!');return;}
-    paid=true;let t=0;sel.forEach(i=>t+=items[i].p);
-    if(t>GS.balance){alert('ҮЛДЭГДЭЛ ХҮРЭЛЦЭХГҮЙ!');paid=false;return;}
-    GS.balance-=t;updateHUD();earnPts(30,'ДЭЛГҮҮРТ КАРТ');
-    const res=document.getElementById('sh-res');
-    res.className='px-result ok';res.textContent=`✓ ₮${fmt(t)} КАРТААР ТООЦОО ХИЙЛЭЭ! ҮЛДЭГДЭЛ: ₮${fmt(GS.balance)}`;
-    document.getElementById('sh-btn').disabled=true;
-    setTimeout(closeMG,2500);
+    if(paid || sel.size===0) return; paid=true;
+    let t=0; sel.forEach(i=>t+=items[i].p);
+    GS.balance-=t; updateHUD(); earnPts(30,'КАРТААР ТООЦОО'); triggerShake(10);
+    document.getElementById('sh-res').className='px-result ok';
+    document.getElementById('sh-res').textContent=`✓ ₮${fmt(t)} ТООЦОО ХИЙЛЭЭ!`;
+    setTimeout(closeMG,2000);
   };
 }
 
-// ── GYALSBANK ──
 function renderMGGylsBank(el) {
-  let step=0;
-  function render(){
-    el.innerHTML=`
-      <div style="display:flex;gap:5px;margin-bottom:12px">
-        ${['💡ЦАХИЛГААН','💸ШИЛЖҮҮЛЭГ','📋ТҮҮХ'].map((s,i)=>`<div style="flex:1;padding:5px;border:1px solid ${i<step?'#50fa7b':i===step?'#6495ED':'#222'};font-size:6px;color:${i<step?'#50fa7b':i===step?'#6495ED':'#555'};text-align:center;">${i<step?'✓ ':''}${s}</div>`).join('')}
-      </div>
-      <div class="phone-wrap">
-        <div class="phone-bar"><span>ГЯЛС БАНК</span><span>9:41</span></div>
-        <div class="phone-hdr">★ ГЯЛС БАНК</div>
-        <div class="phone-body" id="gb-ph"></div>
-      </div>
-      <div id="gb-res"></div>
+    el.innerHTML = `
+        <div class="phone-wrap" style="max-width:340px; margin:0 auto;">
+            <div style="background:#0f172a; padding:8px 18px; font-size:10px; color:#94a3b8; display:flex; justify-content:space-between; border-bottom:2px solid #334155;"><span>ГЯЛС БАНК</span><span>9:41</span></div>
+            <div style="background:#1e293b; padding:35px; text-align:center;">
+                <div style="font-size:12px; color:#94a3b8; margin-bottom:12px">ҮЛДЭГДЭЛ</div>
+                <div style="font-size:30px; color:#38bdf8; text-shadow:0 0 15px #38bdf866;">₮${fmt(GS.balance)}</div>
+            </div>
+            <div style="padding:28px; background:#0f172a;">
+                <button class="px-btn" style="margin-top:0; margin-bottom:18px; background:#1e293b; border-color:#475569; color:#fff;" onclick="this.disabled=true; earnPts(20,'ЦАХИЛГААН'); triggerShake(8); this.textContent='✓ ТӨЛСӨН'; checkGbDone();">💡 ЦАХИЛГААН ₮45,000</button>
+                <button class="px-btn" style="margin-top:0; background:#1e293b; border-color:#475569; color:#fff;" onclick="this.disabled=true; earnPts(20,'ШИЛЖҮҮЛЭГ'); triggerShake(8); this.textContent='✓ ШИЛЖСЭН'; checkGbDone();">💸 НАЙЗАД ₮50,000</button>
+            </div>
+        </div>
+        <div id="gb-res"></div>
     `;
-    const ph=document.getElementById('gb-ph');
-    if(step===0){
-      ph.innerHTML=`
-        <div class="phone-bal"><div class="phone-bal-l">ҮЛДЭГДЭЛ</div><div class="phone-bal-v">₮${fmt(GS.balance)}</div></div>
-        <input class="phone-inp" id="gb-acc" placeholder="ДАНС: 1234567" value="1234567">
-        <input class="phone-inp" id="gb-amt" type="number" placeholder="ДҮН" value="45000">
-        <button class="phone-btn" onclick="gbStep0()">💡 ЦАХИЛГААН ТӨЛӨХ</button>
-      `;
-      window.gbStep0=()=>{
-        const a=+document.getElementById('gb-amt').value||0;
-        if(!a)return; GS.balance-=a;updateHUD();earnPts(20,'ЦАХИЛГААН ТӨЛӨВ');step=1;render();
-      };
-    } else if(step===1){
-      ph.innerHTML=`
-        <div class="phone-bal"><div class="phone-bal-l">ҮЛДЭГДЭЛ</div><div class="phone-bal-v">₮${fmt(GS.balance)}</div></div>
-        <input class="phone-inp" id="gb-to" placeholder="ХҮЛЭЭН АВАГЧ ДАНС" value="5000-0001-2345">
-        <input class="phone-inp" id="gb-am2" type="number" placeholder="ДҮН" value="50000">
-        <button class="phone-btn g" onclick="gbStep1()">💸 ШИЛЖҮҮЛЭХ</button>
-      `;
-      window.gbStep1=()=>{
-        const a=+document.getElementById('gb-am2').value||0;
-        if(!a)return; GS.balance-=a;updateHUD();earnPts(20,'ШИЛЖҮҮЛЭГ');step=2;render();
-      };
-    } else {
-      ph.innerHTML=`
-        <div style="font-size:7px;color:#6495ED;margin-bottom:6px;letter-spacing:1px;">ГҮЙЛГЭЭНИЙ ТҮҮХ</div>
-        ${[['НАЙЗАД ШИЛЖҮҮЛЭГ',-50000],['ЦАХИЛГААН',-45000],['ОРЛОГО — ГЭР БҮЛ',500000]].map(([t,a])=>`<div class="tx-row"><span>${t}</span><span class="${a>0?'tx-p':'tx-n'}">${a>0?'+':''}₮${fmt(Math.abs(a))}</span></div>`).join('')}
-        <button class="phone-btn" style="margin-top:8px" onclick="gbDone()">★ ДУУСГАХ</button>
-      `;
-      window.gbDone=()=>{
-        earnPts(10,'ГҮЙЛГЭЭНИЙ ТҮҮХ');
-        const res=document.getElementById('gb-res');
-        res.className='px-result ok';res.textContent='★ ГЯЛС БАНК АШИГЛАН ГҮЙЛГЭЭНҮҮДИЙГ АМЖИЛТТАЙ ХИЙЛЭЭ!';
-        setTimeout(closeMG,2500);
-      };
+    let clicks=0;
+    window.checkGbDone = () => {
+        clicks++;
+        if(clicks>=2) {
+            document.getElementById('gb-res').className='px-result ok';
+            document.getElementById('gb-res').textContent='★ АППААР АМЖИЛТТАЙ ГҮЙЛГЭЭ ХИЙЛЭЭ!';
+            setTimeout(closeMG,2500);
+        }
     }
-  }
-  render();
 }
 
-// ── PHISHING ──
 function renderMGPhishing(el) {
-  let ans=false;
-  el.innerHTML=`
-    <div class="px-card" style="border-color:#330000">
-      <div style="font-size:7px;color:#6495ED;margin-bottom:8px">📩 ШИНЭ МЕССЕЖ</div>
-      <div style="background:#1a0000;border:1px solid #440000;padding:10px;margin-bottom:8px">
-        <div style="font-size:7px;color:#ff8888;margin-bottom:5px">🏦 TÖRIIN-BANK-OFFICIAL</div>
-        <div style="font-size:8px;color:#ccc;line-height:1.8">⚠ ТАНЫ ДАНС ТҮР ХААГДСАН!<br>НЭВТРЭХ МЭДЭЭЛЛЭЭ ШИНЭЧЛЭХИЙН ТУЛД:<br><span style="color:#ff5555;text-decoration:underline">http://torii-bank-login.xyz</span><br>⏰ 24 ЦАГТ ХИЙХГҮЙ БОЛ УСТГАГДАНА!</div>
-      </div>
+    el.innerHTML=`
+    <div class="px-card" style="border-color:#7f1d1d; background:linear-gradient(135deg, #450a0a, #1e293b);">
+      <div style="font-size:12px;color:#fca5a5;margin-bottom:14px">📩 ШИНЭ МЕССЕЖ</div>
+      <div style="font-size:14px;color:#fff;line-height:1.8">⚠ ТАНЫ ДАНС ХААГДЛАА!<br>ЯГ ОДОО НЭВТРЭХ:<br><span style="color:#60a5fa;text-decoration:underline">http://torii-bank-login.xyz</span></div>
     </div>
-    <span class="px-label" style="margin-top:10px">ТА ЭНЭ МЕССЕЖТЭЙ ЯАХ ВЭ?</span>
-    <div id="ph-ch"></div><div id="ph-res"></div>
+    <button class="px-btn" style="background:#7f1d1d; border-color:#ef4444; color:#fff;" onclick="phAns(false)">🔗 ХОЛБООСООР ОРОХ</button>
+    <button class="px-btn" style="background:#064e3b; border-color:#10b981; color:#fff;" onclick="phAns(true)">🗑 УСТГАЖ БАНК РУУ ЗАЛГАХ</button>
+    <div id="ph-res"></div>
   `;
-  const opts=[
-    {i:'🔗',t:'ХОЛБООСОНД ОРНО',ok:false},
-    {i:'🗑',t:'СЭЖИГТЭЙ — УСТГАЖ 1800-1111 ЗАЛГАНА',ok:true},
-    {i:'📤',t:'НАЙЗУУДТАЙГАА ХУВААЛЦАНА',ok:false},
-  ];
-  const ca=document.getElementById('ph-ch');
-  opts.forEach(o=>{
-    const b=document.createElement('button'); b.className='dlg-choice';
-    b.textContent=o.i+'  '+o.t;
-    b.onclick=()=>{
-      if(ans)return;ans=true;
-      b.className='dlg-choice '+(o.ok?'ok':'ng');
-      if(o.ok)earnPts(50,'ФИШИНГ ТАНЬЛАА');
-      const res=document.getElementById('ph-res');
-      res.className='px-result '+(o.ok?'ok':'ng');
-      res.textContent=o.ok?'✓ ЗӨВ! ФИШИНГ ХАЛДЛАГА. БАНК ХЭЗЭЭ Ч МЕССЕЖЭЭР НЭВТРЭХ МЭДЭЭЛЭЛ АСУУДАГГҮЙ!':'⚠ БОЛГООМЖТОЙ! ФИШИНГ. ДОМЭЙН .XYZ БУРУУ!';
-      const inf=document.createElement('div');
-      inf.className='px-info';inf.innerHTML='<b>ФИШИНГ ЯАЖ ТАНИХ ВЭ?</b>1. ЯАРАЛТАЙ БАЙДАЛ БИЙ БОЛГОДОГ 2. ДОМЭЙН БУРУУ (.XYZ) 3. БАНК SMS-ЭЭР НУУЦ МЭДЭЭЛЭЛ АСУУДАГГҮЙ';
-      res.after(inf);
-      setTimeout(closeMG,3500);
-    };
-    ca.appendChild(b);
-  });
+  let done=false;
+  window.phAns=(isOk)=>{
+      if(done)return; done=true; triggerShake(isOk?10:25);
+      if(isOk) earnPts(50,'ФИШИНГ ТАНИЛАА');
+      const res=document.getElementById('ph-res'); res.className='px-result '+(isOk?'ok':'ng');
+      res.textContent=isOk?'✓ ЗӨВ! ЭНЭ БОЛ ЗАЛИЛАН!':'⚠ БУРУУ! ТА ХАКЕРТ МЭДЭЭЛЛЭЭ АЛДЛАА!';
+      setTimeout(closeMG,2500);
+  }
 }
 
-// ── COMPARE ──
 function renderMGCompare(el) {
-  let chosen=false;
-  el.innerHTML=`
-    <div style="overflow-x:auto;margin-bottom:12px">
-      <table class="cmp-tbl">
-        <thead><tr><th style="color:#666">ШАЛГУУР</th><th>🏦 ТӨРИЙН БАНК</th><th>🌐 REVOLUT</th></tr></thead>
-        <tbody>
-          ${[
-            ['ГАДААД ШИЛЖҮҮЛГИЙН ХУГ.','<span class="badge y">2–5 ХОНОГ</span>','<span class="badge g">ТЭР ДАРГААР</span>'],
-            ['ШИМТГЭЛ','<span class="badge r">1–3%+₮15К</span>','<span class="badge g">€0 (ХЯЗГААР)</span>'],
-            ['ВАЛЮТЫН ХАНШ','<span class="badge y">БАНКНЫ</span>','<span class="badge g">ЗАХ ЗЭЭЛИЙН</span>'],
-            ['ОЛОН ВАЛЮТТ ДАНС','<span class="badge r">БАЙХГҮЙ</span>','<span class="badge g">30+ ВАЛЮТ</span>'],
-            ['МОНГОЛ ATM','<span class="badge g">ӨРГӨН</span>','<span class="badge r">БАЙХГҮЙ</span>'],
-            ['МОНГОЛ ХЭЛ','<span class="badge g">ТИЙМ</span>','<span class="badge r">ҮГҮЙ</span>'],
-          ].map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}
-        </tbody>
-      </table>
-    </div>
-    <span class="px-label">ТА АЛЬ АРГЫГ СОНГОХ ВЭ?</span>
-    <div id="cm-ch"></div><div id="cm-res"></div>
-  `;
-  const opts=[
-    {i:'🏦',t:'ЗӨВХӨН ТӨРИЙН БАНК',ok:false},
-    {i:'🌐',t:'ЗӨВХӨН REVOLUT',ok:false},
-    {i:'🤝',t:'ХОЁУЛАНГ ХОСЛУУЛНА (ДОТООД=ТБ, ГАДААД=REVOLUT)',ok:true},
-  ];
-  const ca=document.getElementById('cm-ch');
-  opts.forEach(o=>{
-    const b=document.createElement('button'); b.className='dlg-choice';
-    b.innerHTML=`${o.i}  ${o.t}`;
-    b.onclick=()=>{
-      if(chosen)return;chosen=true;
-      b.className='dlg-choice '+(o.ok?'ok':'ng');
-      ca.querySelectorAll('.dlg-choice').forEach((btn,i)=>{if(opts[i].ok)btn.className='dlg-choice ok';});
-      earnPts(o.ok?50:20,'ХАРЬЦУУЛАЛТ');
-      const res=document.getElementById('cm-res');
-      res.className='px-result '+(o.ok?'ok':'ng');
-      res.textContent=o.ok?'★ ГАЙХАЛТАЙ! ХОЁУЛАНГ ХОСЛУУЛАХ НЬ ХАМГИЙН УХААЛАГ!':'★ ХОЁУЛАНГ ХОСЛУУЛАХ НЬ ОНОВЧТОЙ!';
-      setTimeout(closeMG,3000);
-    };
-    ca.appendChild(b);
-  });
+    el.innerHTML=`
+    <table class="cmp-tbl" style="width:100%; border-collapse:collapse; font-size:12px; margin-bottom:20px; background:#0f172a; border-radius:10px; overflow:hidden;">
+        <tr style="background:#1e293b; border-bottom:3px solid #334155; color:#cbd5e1"><th align="left">ҮЗҮҮЛЭЛТ</th><th>ТӨРИЙН БАНК</th><th>REVOLUT</th></tr>
+        <tr style="border-bottom:1px solid #334155"><td style="color:#94a3b8">ГАДААД ШИЛЖҮҮЛЭГ</td><td align="center" style="color:#fde047">2-5 ХОНОГ</td><td align="center" style="color:#86efac">ТЭР ДОР НЬ</td></tr>
+        <tr style="border-bottom:1px solid #334155"><td style="color:#94a3b8">ОЛОН ВАЛЮТ</td><td align="center" style="color:#fca5a5">БАЙХГҮЙ</td><td align="center" style="color:#86efac">30+ ВАЛЮТ</td></tr>
+        <tr><td style="color:#94a3b8">ДОТООД ATM</td><td align="center" style="color:#86efac">МАШ ОЛОН</td><td align="center" style="color:#fca5a5">БАЙХГҮЙ</td></tr>
+    </table>
+    <span class="px-label">АЛЬ НЬ ОНОВЧТОЙ ВЭ?</span>
+    <button class="px-btn" onclick="cmAns(false)">ЗӨВХӨН НЭГИЙГ СОНГОХ</button>
+    <button class="px-btn gold" onclick="cmAns(true)">ХОЁУЛАНГ ХОСЛУУЛАХ</button>
+    <div id="cm-res"></div>
+    `;
+    let done=false;
+    window.cmAns=(isOk)=>{
+        if(done)return; done=true; triggerShake(12);
+        if(isOk) earnPts(50,'УХААЛАГ СОНГОЛТ');
+        document.getElementById('cm-res').className='px-result '+(isOk?'ok':'ng');
+        document.getElementById('cm-res').textContent=isOk?'★ ЗӨВ! ДОТООДДОО ТӨРИЙН БАНК, ГАДААДАД ФИНТЕК ХОСЛУУЛАХ НЬ ШИЛДЭГ.':'★ ХОЁУЛАНГ НЬ ЗОРИУЛАЛТААР НЬ ХОСЛУУЛАХ НЬ ИЛҮҮ АШИГТАЙ.';
+        setTimeout(closeMG,3000);
+    }
 }
 
-// ── CURRENCY ──
 function renderMGCurrency(el) {
-  const rate=3450; let paid=false;
+  const rate=3450;
   el.innerHTML=`
-    <div class="px-card">
-      <div class="px-row"><span>🇪🇺 1 EUR =</span><span style="color:#FFD700;font-size:11px">₮${fmt(rate)}</span></div>
-      <div class="px-row"><span>ШИМТГЭЛ</span><span>1.5%</span></div>
-      <div class="px-row"><span>ҮЙЛЧИЛГЭЭНИЙ ХӨЛС</span><span>₮5,000</span></div>
+    <div class="px-card" style="text-align:center">
+      <div style="font-size:22px; margin-bottom:16px">🇪🇺 1 EUR = <span style="color:#FFD700">₮${fmt(rate)}</span></div>
+      <div style="font-size:11px; color:#94a3b8">ШИМТГЭЛ: 1.5% | ХӨЛС: ₮5,000</div>
     </div>
-    <div style="margin-top:10px">
-      <span class="px-label">ХЭДЭН ЕВРО ХЭРЭГТЭЙ ВЭ?</span>
-      <input class="px-input" type="number" id="eu-in" value="1000" min="1" oninput="calcEU()">
-    </div>
-    <div class="px-card" id="eu-calc" style="margin-top:8px"></div>
-    <button class="px-btn gold" id="eu-btn" onclick="doEU()">💱 ВАЛЮТ АРИЛЖААЛАХ</button>
-    <div id="eu-res"></div>
+    <input class="px-input" type="number" id="eu-in" value="1000" min="1" oninput="calcEU()">
+    <div class="px-card" id="eu-calc" style="margin-top:16px"></div>
+    <button class="px-btn gold" id="eu-btn" onclick="doEU()">💱 АРИЛЖААЛАХ</button><div id="eu-res"></div>
   `;
   window.calcEU=()=>{
     const e=+document.getElementById('eu-in').value||0;
-    const b=e*rate,f=b*0.015,s=5000,t=b+f+s;
-    document.getElementById('eu-calc').innerHTML=`
-      <div class="px-row"><span>ҮНДСЭН ДҮН</span><span>₮${fmt(Math.round(b))}</span></div>
-      <div class="px-row"><span>ШИМТГЭЛ 1.5%</span><span style="color:#ff5555">₮${fmt(Math.round(f))}</span></div>
-      <div class="px-row"><span>ҮЙЛЧ. ХӨЛС</span><span style="color:#ff5555">₮${fmt(s)}</span></div>
-      <div class="px-row ttl"><span>НИЙТ</span><span>₮${fmt(Math.round(t))}</span></div>
-    `;
+    document.getElementById('eu-calc').innerHTML=`<div class="px-row ttl"><span>НИЙТ ТӨЛӨХ:</span><span style="font-size:17px;">₮${fmt(Math.round(e*rate*1.015+5000))}</span></div>`;
   };
-  window.calcEU();
+  window.calcEU(); let done=false;
   window.doEU=()=>{
-    if(paid)return;
-    const e=+document.getElementById('eu-in').value||0;
-    const t=Math.round(e*rate*1.015+5000);
-    if(t>GS.balance){alert('ҮЛДЭГДЭЛ ХҮРЭЛЦЭХГҮЙ!');return;}
-    paid=true;GS.balance-=t;updateHUD();earnPts(40,'ВАЛЮТ АРИЛЖАА');
-    const res=document.getElementById('eu-res');
-    res.className='px-result ok';res.textContent=`✓ €${e} ЕВРО АВЛАА! ₮${fmt(t)} ЗАРЦУУЛАГДЛАА.`;
-    document.getElementById('eu-btn').disabled=true;setTimeout(closeMG,2500);
+    if(done)return; done=true; earnPts(40,'ВАЛЮТ'); triggerShake(12);
+    document.getElementById('eu-res').className='px-result ok'; document.getElementById('eu-res').textContent=`✓ АМЖИЛТТАЙ!`;
+    setTimeout(closeMG,2000);
   };
 }
 
-// ── INVEST ──
 function renderMGInvest(el) {
-  const prods=[
-    {e:'🏠',n:'"ОРОН СУУЦ" ХАДГАЛАМЖ',r:10.5,risk:'БАГА ЭРСДЭЛ',rc:'#50fa7b',yrs:5,ok:true},
-    {e:'📊',n:'ХАМТЫН ХӨРӨНГӨ ОРУУЛАЛТ',r:15,risk:'ДУНД ЭРСДЭЛ',rc:'#FFD700',yrs:3,ok:false},
-    {e:'📈',n:'ХУВЬЦАА (MSX)',r:25,risk:'ӨНДӨР ЭРСДЭЛ',rc:'#ff5555',yrs:5,ok:false},
-  ];
-  let sel=null;
-  el.innerHTML=`
-    <span class="px-label">₮100,000 ХӨРӨНГӨӨ БАЙРШУУЛАХ</span>
-    <div id="inv-opts"></div>
-    <div id="inv-chart" style="display:none"></div>
+    el.innerHTML=`
+    <div style="display:grid; grid-template-columns:1fr; gap:18px;">
+        <button class="px-btn" style="text-align:left; padding:24px; margin:0; background:linear-gradient(#064e3b, #1e293b); border-color:#10b981; color:#fff" onclick="invAns(true, 10)">🏠 ХАДГАЛАМЖ (10% - БАТТАЙ)</button>
+        <button class="px-btn" style="text-align:left; padding:24px; margin:0; background:linear-gradient(#713f12, #1e293b); border-color:#eab308; color:#fff" onclick="invAns(true, 15)">📊 ХАМТЫН САН (15% - ДУНД)</button>
+        <button class="px-btn" style="text-align:left; padding:24px; margin:0; background:linear-gradient(#7f1d1d, #1e293b); border-color:#ef4444; color:#fff" onclick="invAns(false, 25)">📈 ХУВЬЦАА (25% - ЭРСДЭЛТЭЙ)</button>
+    </div>
     <div id="inv-res"></div>
-  `;
-  const ca=document.getElementById('inv-opts');
-  prods.forEach((p,i)=>{
-    const d=document.createElement('div'); d.className='inv-opt';
-    d.innerHTML=`<div style="font-size:24px">${p.e}</div><div style="font-size:9px;color:#ddd;margin:4px 0">${p.n}</div><div style="font-size:16px;color:#50fa7b;font-weight:bold">${p.r}%</div><div style="font-size:7px;color:${p.rc};margin-top:3px">${p.risk}</div><div style="font-size:7px;color:#555">${p.yrs} ЖИЛ</div>`;
-    d.onclick=()=>{
-      if(sel!==null)return;sel=i;
-      document.querySelectorAll('.inv-opt').forEach((c,j)=>c.className='inv-opt'+(j===i?' sel':''));
-      const end=Math.round(100000*Math.pow(1+p.r/100,p.yrs));
-      // mini bar chart
-      const ch=document.getElementById('inv-chart');
-      ch.style.display='block';
-      const vals=Array.from({length:p.yrs+1},(_,y)=>Math.round(100000*Math.pow(1+p.r/100,y)));
-      const mx=vals[vals.length-1];
-      ch.innerHTML=`<span class="px-label">₮100,000-ИЙН ӨСӨЛТ</span><div style="display:flex;align-items:flex-end;gap:3px;height:60px;margin-bottom:4px">${vals.map((v,y)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px"><div style="font-size:6px;color:#6495ED">${Math.round(v/1000)}К</div><div style="width:100%;background:${p.rc};height:${Math.max(4,Math.round(v/mx*46))}px"></div><div style="font-size:6px;color:#555">${y}Ж</div></div>`).join('')}</div>`;
-      const res=document.getElementById('inv-res');
-      const msgs={10.5:`✓ АЮУЛГҮЙ! ${p.yrs}Ж-Д ₮${fmt(end)} БОЛНО.`,15:`★ ДУНД ЭРСДЭЛ. ₮${fmt(end)} БОЛЖ БОЛНО.`,25:`⚠ ӨНДӨР ЭРСДЭЛ. ₮${fmt(end)} БОЛЖ БОЛОХ Ч АЛДАХ МАГАДЛАЛ БИЙ!`};
-      res.className='px-result '+(p.ok?'ok':'ng');res.textContent=msgs[p.r];
-      earnPts(p.ok?40:p.r===15?35:25,'ХӨРӨНГӨ ОРУУЛАЛТ');
-      setTimeout(closeMG,3500);
-    };
-    ca.appendChild(d);
-  });
+    `;
+    let done=false;
+    window.invAns=(isOk, r)=>{
+        if(done)return; done=true; triggerShake(isOk?12:25);
+        earnPts(isOk?40:20,'ХӨРӨНГӨ ОРУУЛАЛТ');
+        document.getElementById('inv-res').className='px-result '+(isOk?'ok':'ng');
+        document.getElementById('inv-res').textContent=isOk?`★ САЙН БАЙНА! ${r}% ӨГӨӨЖТЭЙГЭЭР ӨСНӨ.`:`⚠ ӨНДӨР ЭРСДЭЛТЭЙ СОНГОЛТ ХИЙЛЭЭ.`;
+        setTimeout(closeMG,2500);
+    }
 }
 
-// ── LOAN ──
 function renderMGLoan(el) {
-  let done=false;
   el.innerHTML=`
     <div class="px-card">
-      <div class="px-row"><span>ЗЭЭЛИЙН ХЭМЖЭЭ</span><select class="px-select" id="ln-a" onchange="calcLN()" style="width:auto;padding:4px 8px"><option value="30000000">₮30 САЯ</option><option value="50000000" selected>₮50 САЯ</option><option value="80000000">₮80 САЯ</option></select></div>
-      <div class="px-row"><span>ХУГАЦАА</span><select class="px-select" id="ln-y" onchange="calcLN()" style="width:auto;padding:4px 8px"><option value="10">10 ЖИЛ</option><option value="15">15 ЖИЛ</option><option value="20" selected>20 ЖИЛ</option></select></div>
-      <div class="px-row"><span>ЖИЛИЙН ХҮҮ</span><select class="px-select" id="ln-r" onchange="calcLN()" style="width:auto;padding:4px 8px"><option value="14">"ОС" 14%</option><option value="16">ЭНГИЙН 16%</option><option value="18">ТЭРГ. 18%</option></select></div>
-      <div class="px-row"><span>УРЬДЧИЛГАА</span><select class="px-select" id="ln-d" onchange="calcLN()" style="width:auto;padding:4px 8px"><option value="10">10%</option><option value="20" selected>20%</option><option value="30">30%</option></select></div>
+      <div class="px-row"><span>ЗЭЭЛИЙН ДҮН</span><select class="px-select" id="ln-a" onchange="calcLN()" style="width:auto;"><option value="50000000">₮50 САЯ</option></select></div>
+      <div class="px-row"><span>ХУГАЦАА</span><select class="px-select" id="ln-y" onchange="calcLN()" style="width:auto;"><option value="10">10 ЖИЛ</option><option value="20" selected>20 ЖИЛ</option></select></div>
     </div>
-    <div class="px-card" id="ln-res" style="margin-top:8px"></div>
-    <button class="px-btn gold" id="ln-btn" onclick="applyLN()">★ ӨРГӨДӨЛ ГАРГАХ</button>
-    <div id="ln-fb"></div>
+    <div class="px-card" id="ln-res"></div>
+    <button class="px-btn gold" onclick="applyLN()">★ ӨРГӨДӨЛ ГАРГАХ</button><div id="ln-fb"></div>
   `;
   window.calcLN=()=>{
-    const a=+document.getElementById('ln-a').value;
     const y=+document.getElementById('ln-y').value;
-    const r=+document.getElementById('ln-r').value/100/12;
-    const d=+document.getElementById('ln-d').value/100;
-    const p=a*(1-d),n=y*12;
-    const m=p*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
-    const tot=m*n;
-    document.getElementById('ln-res').innerHTML=`
-      <div class="px-row"><span>ЗЭЭЛИЙН ДҮН</span><span style="color:#6495ED">₮${fmt(Math.round(p))}</span></div>
-      <div class="px-row"><span>НИЙТ ХҮҮГИЙН ДҮН</span><span style="color:#ff5555">₮${fmt(Math.round(tot-p))}</span></div>
-      <div class="px-row ttl"><span>САРЫН ТӨЛБӨР</span><span>₮${fmt(Math.round(m))}</span></div>
-    `;
+    document.getElementById('ln-res').innerHTML=`<div class="px-row ttl"><span>САРЫН ТӨЛБӨР:</span><span style="font-size:15px;">₮${fmt(Math.round(50000000*0.8*0.01*Math.pow(1.01,y*12)/(Math.pow(1.01,y*12)-1)))}</span></div>`;
   };
-  window.calcLN();
+  window.calcLN(); let done=false;
   window.applyLN=()=>{
-    if(done)return;done=true;earnPts(50,'ЗЭЭЛИЙН ӨРГӨДӨЛ');
-    const fb=document.getElementById('ln-fb');
-    fb.className='px-result ok';fb.textContent='★ ЗЭЭЛИЙН ӨРГӨДӨЛ ХҮЛЭЭН АВЛАА! 5 АЖЛЫН ӨДРИЙН ДОТОР ШИЙДВЭРЛЭНЭ.';
-    const inf=document.createElement('div');inf.className='px-info';
-    inf.innerHTML='<b>ЗӨВЛӨГӨӨ</b>УРЬДЧИЛГАА ИХ БАЙХ ТУСАМ САРЫН ТӨЛБӨР БАГА. ЭРТ ЭХЭЛЖ ХУГАЦААГ БОГИНОСГОХ НЬ НИЙТ ХҮҮГИЙН ДҮНГ БУУРУУЛНА.';
-    fb.after(inf);
-    document.getElementById('ln-btn').disabled=true;setTimeout(closeMG,3500);
+    if(done)return; done=true; earnPts(50,'ЗЭЭЛ'); triggerShake(12);
+    document.getElementById('ln-fb').className='px-result ok'; document.getElementById('ln-fb').textContent='★ ӨРГӨДӨЛ ИЛГЭЭГДЛЭЭ!';
+    setTimeout(closeMG,2000);
   };
 }
 
-// ═══════════════════════════════════════════════════════
-//  LEVEL COMPLETE / GAME FLOW
-// ═══════════════════════════════════════════════════════
 function doLevelComplete() {
   if (GS.phase === 'lc') return;
-  GS.done.add(GS.lvl);
-  GS.phase = 'lc';
+  GS.done.add(GS.lvl); GS.phase = 'lc';
+  inp.left=false; inp.right=false;
+  
   const lv = LEVELS[GS.lvl];
   document.getElementById('lc-em').textContent = lv.emoji;
   document.getElementById('lc-h').textContent = `ҮЕ ${lv.id} ДУУССАН!`;
   document.getElementById('lc-s').textContent = lv.name;
-  document.getElementById('lc-pts').textContent = GS.pts;
-  const lessons = [
-    'ХАРИЛЦАХ ДАНС + ДЕБИТ КАРТ',
-    'МОБАЙЛ БАНК + КИБЕР АЮУЛГҮЙ БАЙДАЛ',
-    'ОЛОН УЛС ГҮЙЛГЭЭ + ФИНТЕК',
-    'ХӨРӨНГӨ ОРУУЛАЛТ + ЗЭЭЛ',
-  ];
-  document.getElementById('lc-box').innerHTML =
-    `<div style="font-size:7px;color:#6495ED;margin-bottom:8px">★ СУРАЛЦСАН:</div>` +
-    lessons.slice(0, lv.id).map(l => `<div class="lc-item"><span style="color:#50fa7b">✓</span><span>${l}</span></div>`).join('');
+  
+  let currentScore = 0;
+  const targetScore = GS.pts;
+  const ptsEl = document.getElementById('lc-pts');
+  
+  const lessons = ['ХАРИЛЦАХ ДАНС + ДЕБИТ КАРТ','МОБАЙЛ БАНК + КИБЕР АЮУЛГҮЙ БАЙДАЛ','ОЛОН УЛС ГҮЙЛГЭЭ + ФИНТЕК','ХӨРӨНГӨ ОРУУЛАЛТ + ЗЭЭЛ'];
+  document.getElementById('lc-box').innerHTML = `<div style="font-size:13px;color:#6495ED;margin-bottom:18px; border-bottom:2px solid #334155; padding-bottom:14px">★ СУРАЛЦСАН:</div>` + lessons.slice(0, lv.id).map(l => `<div class="lc-item"><span style="color:#50fa7b; font-size:15px">✓</span><span>${l}</span></div>`).join('');
+  
   const nb = document.getElementById('lc-next');
-  if (GS.lvl >= LEVELS.length - 1) {
-    nb.textContent = '★ ДУУСГАХ'; nb.onclick = showFinalComplete;
-  } else {
-    nb.textContent = `ҮЕ ${GS.lvl + 2} ▶`; nb.onclick = goNext;
-  }
+  if (GS.lvl >= LEVELS.length - 1) { nb.textContent = '★ ДУУСГАХ'; nb.onclick = showFinalComplete; } 
+  else { nb.textContent = `ҮЕ ${GS.lvl + 2} ▶`; nb.onclick = goNext; }
+  
   document.getElementById('lc').style.display = 'flex';
+  
+  const iv = setInterval(() => {
+      currentScore += Math.ceil((targetScore - currentScore)*0.2) + 1;
+      if(currentScore >= targetScore) { currentScore = targetScore; clearInterval(iv); }
+      ptsEl.textContent = currentScore;
+  }, 30);
 }
 
 function showFinalComplete() {
@@ -1872,11 +1654,8 @@ function showFinalComplete() {
   document.getElementById('lc-h').textContent = 'БАЯР ХҮРГЭЕ!';
   document.getElementById('lc-s').textContent = 'САНХҮҮГИЙН МАСТЕР БОЛЛОО!';
   document.getElementById('lc-pts').textContent = GS.pts;
-  const rank = GS.pts >= 350 ? '★★★ МАСТЕР' : GS.pts >= 250 ? '★★ МЭРГЭЖИЛТЭН' : GS.pts >= 150 ? '★ СУРАЛЦАГЧ' : '○ ЭХЛЭГЧ';
-  document.getElementById('lc-box').innerHTML = `
-    <div style="font-size:9px;color:#FFD700;margin-bottom:10px">${rank}</div>
-    ${['💳 ХАРИЛЦАХ ДАНС, ДЕБИТ КАРТ','📊 САРЫН ТӨСӨВЛӨЛТ','📱 МОБАЙЛ БАНК, ФИШИНГ','🌍 ОЛОН УЛС ГҮЙЛГЭЭ','💱 ВАЛЮТ АРИЛЖАА','📈 НИЙЛМЭЛ ХҮҮ','🏠 ЗЭЭЛИЙН ТООЦОО'].map(l=>`<div class="lc-item"><span style="color:#50fa7b">★</span><span>${l}</span></div>`).join('')}
-  `;
+  const rank = GS.pts >= 400 ? '★★★ МАСТЕР' : GS.pts >= 250 ? '★★ МЭРГЭЖИЛТЭН' : '★ СУРАЛЦАГЧ';
+  document.getElementById('lc-box').innerHTML = `<div style="font-size:18px;color:#FFD700;margin-bottom:18px;text-align:center;animation:pulse 1.5s infinite">${rank}</div>`;
   document.getElementById('lc-next').textContent = '★ ДАХИН ТОГЛОХ';
   document.getElementById('lc-next').onclick = restartGame;
   document.getElementById('lc').style.display = 'flex';
@@ -1884,11 +1663,8 @@ function showFinalComplete() {
 
 window.goMap = function() {
   document.getElementById('lc').style.display = 'none';
-  renderMap();
-  document.getElementById('map-screen').style.display = 'flex';
-  GS.phase = 'map';
+  renderMap(); document.getElementById('map-screen').style.display = 'flex'; GS.phase = 'map';
 };
-
 window.goNext = function() {
   document.getElementById('lc').style.display = 'none';
   const next = GS.lvl + 1;
@@ -1898,8 +1674,9 @@ window.goNext = function() {
 
 function loadLevel(idx) {
   GS.lvl = idx; GS.phase = 'playing';
-  plr.wx = 80; camX = 0;
-  npcTalkCooldown = {};
+  plr.wx = 150; camX = 0; targetCamX = 0;
+  spawnLevelCoins(LEVELS[idx]);
+  particles = [];
   document.getElementById('lc').style.display = 'none';
   document.getElementById('map-screen').style.display = 'none';
   document.getElementById('hud-lvbadge').textContent = `ҮЕ ${idx + 1}`;
@@ -1909,75 +1686,47 @@ function loadLevel(idx) {
 
 function restartGame() {
   GS.balance = 500000; GS.pts = 0; GS.done.clear();
-  document.getElementById('lc').style.display = 'none';
-  updateHUD();
-  loadLevel(0);
+  document.getElementById('lc').style.display = 'none'; updateHUD(); loadLevel(0);
 }
 
 function renderMap() {
   const g = document.getElementById('map-grid');
   g.innerHTML = LEVELS.map((lv, i) => {
-    const done = GS.done.has(i);
-    const locked = i > 0 && !GS.done.has(i - 1);
-    return `<div class="map-cell ${done?'done':''} ${locked?'lock':''}" onclick="${locked?`alert('ӨМНӨХ ҮЕЭ ДУУСГААРАЙ!')`:('mapGo('+i+')')}">
+    const done = GS.done.has(i); const locked = i > 0 && !GS.done.has(i - 1);
+    return `<div class="map-cell ${done?'done':''} ${locked?'lock':''}" onclick="${locked?`toast('ӨМНӨХ ҮЕЭ ДУУСГААРАЙ!')`:('mapGo('+i+')')}">
       <div class="map-emoji">${lv.emoji}</div>
-      <div class="map-num">ҮЕ ${lv.id}</div>
-      <div class="map-name">${lv.name}</div>
-      <div class="map-stat" style="color:${done?'#50fa7b':locked?'#333':'#6495ED'}">${done?'✓ ДУУССАН':locked?'🔒 ТҮГЖИГДСЭН':'▶ ТОГЛОХ'}</div>
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:10px;">ҮЕ ${lv.id}</div>
+      <div style="font-size:14px;color:#fff;margin-bottom:16px; line-height:1.5">${lv.name}</div>
+      <div style="font-size:12px;color:${done?'#50fa7b':locked?'#94a3b8':'#6495ED'}; font-weight:bold;">${done?'✓ ДУУССАН':locked?'🔒 ТҮГЖИГДСЭН':'▶ ТОГЛОХ'}</div>
     </div>`;
   }).join('');
 }
+window.mapGo = function(i) { document.getElementById('map-screen').style.display = 'none'; loadLevel(i); };
 
-window.mapGo = function(i) {
-  document.getElementById('map-screen').style.display = 'none';
-  loadLevel(i);
-};
-
-// ═══════════════════════════════════════════════════════
-//  TITLE SCREEN
-// ═══════════════════════════════════════════════════════
-// Starfield animation
-let stars = Array.from({ length: 120 }, () => ({
-  x: Math.random() * window.innerWidth,
-  y: Math.random() * window.innerHeight,
-  r: Math.random() * 1.5 + 0.3,
-  speed: Math.random() * 0.4 + 0.1,
-  brightness: Math.random(),
+let stars = Array.from({ length: 150 }, () => ({
+  x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
+  s: Math.random() * 3 + 1, v: Math.random() * 0.8 + 0.2, a: Math.random()
 }));
 
 function animTitle() {
   if (GS.phase !== 'title') return;
   tc.width = window.innerWidth; tc.height = window.innerHeight;
-  tctx.fillStyle = '#050510';
-  tctx.fillRect(0, 0, tc.width, tc.height);
+  tctx.fillStyle = '#1e293b'; tctx.fillRect(0, 0, tc.width, tc.height);
 
-  // Pixel grid
-  tctx.fillStyle = 'rgba(100,149,237,0.03)';
-  for (let x = 0; x < tc.width; x += 16) tctx.fillRect(x, 0, 1, tc.height);
-  for (let y = 0; y < tc.height; y += 16) tctx.fillRect(0, y, tc.width, 1);
+  tctx.strokeStyle = '#6495ED15'; tctx.lineWidth = 2;
+  tctx.beginPath();
+  for(let i=0; i<tc.width; i+=60) { tctx.moveTo(i,0); tctx.lineTo(i,tc.height); }
+  for(let i=0; i<tc.height; i+=60) { tctx.moveTo(0,i); tctx.lineTo(tc.width,i); }
+  tctx.stroke();
 
-  // Stars
   stars.forEach(s => {
-    s.y += s.speed;
-    if (s.y > tc.height) { s.y = 0; s.x = Math.random() * tc.width; }
-    s.brightness = Math.sin(Date.now() * 0.001 + s.x) * 0.4 + 0.6;
-    tctx.fillStyle = `rgba(255,255,255,${s.brightness * 0.7})`;
-    tctx.fillRect(Math.round(s.x), Math.round(s.y), Math.ceil(s.r), Math.ceil(s.r));
+    s.y -= s.v; if (s.y < 0) { s.y = tc.height; s.x = Math.random() * tc.width; }
+    s.a += 0.05;
+    let alpha = (Math.sin(s.a) * 0.5 + 0.5) * 0.8;
+    tctx.fillStyle = `rgba(148, 163, 184, ${alpha})`;
+    tctx.fillRect(s.x, s.y, s.s, s.s);
   });
-
-  // Pixel border
-  tctx.strokeStyle = 'rgba(100,149,237,0.3)';
-  tctx.lineWidth = 2;
-  tctx.strokeRect(8, 8, tc.width - 16, tc.height - 16);
-
   requestAnimationFrame(animTitle);
-}
-
-// Draw avatar previews
-function drawAvatarPreviews() {
-  for (let i = 0; i < 4; i++) {
-    drawAvatarPreview(document.getElementById(`av${i}`), i);
-  }
 }
 
 window.selAv = function(i) {
@@ -1992,24 +1741,28 @@ window.startGame = function() {
   document.getElementById('title').style.display = 'none';
   document.getElementById('ctrl').style.display = 'flex';
   document.getElementById('hud').style.display = 'flex';
+  
+  setTimeout(()=> document.getElementById('hud').classList.add('visible'), 100);
+  
   loadLevel(0);
 };
 
-// ═══════════════════════════════════════════════════════
-//  INPUT
-// ═══════════════════════════════════════════════════════
-document.getElementById('dp-l').addEventListener('touchstart', e => { e.preventDefault(); inp.left = true; document.getElementById('dp-l').classList.add('on'); }, { passive: false });
-document.getElementById('dp-l').addEventListener('touchend', e => { e.preventDefault(); inp.left = false; document.getElementById('dp-l').classList.remove('on'); }, { passive: false });
-document.getElementById('dp-r').addEventListener('touchstart', e => { e.preventDefault(); inp.right = true; document.getElementById('dp-r').classList.add('on'); }, { passive: false });
-document.getElementById('dp-r').addEventListener('touchend', e => { e.preventDefault(); inp.right = false; document.getElementById('dp-r').classList.remove('on'); }, { passive: false });
+const dpL = document.getElementById('dp-l');
+const dpR = document.getElementById('dp-r');
+dpL.addEventListener('touchstart', e => { e.preventDefault(); inp.left = true; dpL.classList.add('on'); }, { passive: false });
+dpL.addEventListener('touchend', e => { e.preventDefault(); inp.left = false; dpL.classList.remove('on'); }, { passive: false });
+dpR.addEventListener('touchstart', e => { e.preventDefault(); inp.right = true; dpR.classList.add('on'); }, { passive: false });
+dpR.addEventListener('touchend', e => { e.preventDefault(); inp.right = false; dpR.classList.remove('on'); }, { passive: false });
+dpL.addEventListener('mousedown', e => { e.preventDefault(); inp.left = true; dpL.classList.add('on'); });
+dpL.addEventListener('mouseup', e => { e.preventDefault(); inp.left = false; dpL.classList.remove('on'); });
+dpR.addEventListener('mousedown', e => { e.preventDefault(); inp.right = true; dpR.classList.add('on'); });
+dpR.addEventListener('mouseup', e => { e.preventDefault(); inp.right = false; dpR.classList.remove('on'); });
 
-document.getElementById('abtn-a').addEventListener('click', interact);
+document.getElementById('abtn-a').addEventListener('touchstart', e=>{e.preventDefault(); interact();});
+document.getElementById('abtn-a').addEventListener('mousedown', e=>{e.preventDefault(); interact();});
 document.getElementById('abtn-b').addEventListener('click', () => {
-  if (GS.phase === 'playing') {
-    renderMap(); document.getElementById('map-screen').style.display = 'flex'; GS.phase = 'map';
-  } else if (GS.phase === 'map') {
-    document.getElementById('map-screen').style.display = 'none'; GS.phase = 'playing';
-  }
+  if (GS.phase === 'playing') { renderMap(); document.getElementById('map-screen').style.display = 'flex'; GS.phase = 'map'; } 
+  else if (GS.phase === 'map') { document.getElementById('map-screen').style.display = 'none'; GS.phase = 'playing'; }
 });
 
 document.addEventListener('keydown', e => {
@@ -2023,41 +1776,34 @@ document.addEventListener('keyup', e => {
   if (e.key === 'ArrowRight' || e.key === 'd') inp.right = false;
 });
 
-document.getElementById('dlg').addEventListener('click', e => {
-  if (e.target.tagName === 'BUTTON') return;
-  advDlg();
-});
+document.getElementById('dlg').addEventListener('click', e => { if (e.target.tagName !== 'BUTTON') advDlg(); });
+document.addEventListener('touchmove', e => { if(GS.phase==='playing') e.preventDefault(); }, { passive: false });
 
-document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
-document.getElementById('dlg').addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
-document.getElementById('mg-sheet').addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
-document.getElementById('map-screen').addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
-document.getElementById('lc').addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
-
-// ═══════════════════════════════════════════════════════
-//  UTILS
-// ═══════════════════════════════════════════════════════
 function fmt(n) { return new Intl.NumberFormat('mn-MN').format(n); }
-function earnPts(n, label) { GS.pts += n; updateHUD(); toast(`+${n} ★ ${label}`); }
+function earnPts(n, label) { 
+    GS.pts += n; updateHUD(); 
+    if(label) toast(`+${n} ★ ${label}`); 
+    
+    const ptsEl = document.getElementById('h-pts');
+    ptsEl.style.transform = 'scale(1.8)';
+    ptsEl.style.color = '#fff';
+    setTimeout(()=> { ptsEl.style.transform = 'scale(1)'; ptsEl.style.color = '#FFD700'; }, 200);
+}
 function updateHUD() {
   document.getElementById('h-bal').textContent = `₮${fmt(GS.balance)}`;
   document.getElementById('h-pts').textContent = GS.pts;
 }
 function toast(msg) {
   const t = document.createElement('div'); t.className = 'px-toast'; t.textContent = msg;
-  document.body.appendChild(t); setTimeout(() => t.remove(), 2300);
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2500);
 }
 
-// ═══════════════════════════════════════════════════════
-//  GAME LOOP
-// ═══════════════════════════════════════════════════════
 function loop() {
   render();
   requestAnimationFrame(loop);
 }
 
-// INIT
-drawAvatarPreviews();
+for (let i = 0; i < 4; i++) drawAvatarPreview(document.getElementById(`av${i}`), i);
 animTitle();
 loop();
 </script>
