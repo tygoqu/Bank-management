@@ -15,12 +15,11 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{
     width:100%;height:100%;height:100dvh;
-    position:fixed;inset:0; /* Safari дээр search bar харагдахаас сэргийлж хатуу түгжих */
+    position:fixed;inset:0;
     overflow:hidden;overscroll-behavior:none;
     background:#1e293b;font-family:'Press Start 2P',monospace;
 }
 
-/* ── CRT OVERLAY (ЦАЙВАР БОЛГАСАН) ── */
 body::after {
   content: "";
   position: absolute;
@@ -34,11 +33,8 @@ body::after {
 
 #c{display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
 #game-container { transition: transform 0.05s; }
-
-/* ── PIXEL UI OVERLAY ── */
 #ui{position:fixed;inset:0;pointer-events:none;z-index:10;}
 
-/* HUD */
 #hud{
   position:fixed;top:0;left:0;right:0;
   background:linear-gradient(to bottom, rgba(15,23,42,0.9), rgba(15,23,42,0.5));
@@ -69,7 +65,6 @@ body::after {
 }
 @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 5px #FFD70055; } 50% { box-shadow: 0 0 15px #FFD700aa; } }
 
-/* DIALOG BOX */
 #dlg{
   position:fixed;bottom:15px;left:50%; width: 96%; max-width: 650px;
   transform:translate(-50%, 120%);
@@ -93,22 +88,21 @@ body::after {
 }
 #dlg-face{ width: 100%; height: 100%; image-rendering:pixelated; }
 #dlg-name{font-size:11px;color:#FFD700;margin-bottom:10px;letter-spacing:1px; text-shadow: 2px 2px 0 #000;}
-#dlg-text{font-size:12px;color:#e2e8f0;line-height:1.6;flex:1; text-shadow: 1px 1px 0 #000;}
+#dlg-text{font-size:11px;color:#e2e8f0;line-height:1.6;flex:1; text-shadow: 1px 1px 0 #000;}
 #dlg-cont{font-size:10px;color:#94a3b8;padding:10px 16px;text-align:right;animation:blink 1s steps(1) infinite;}
 @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
 #dlg-choices{display:flex;flex-direction:column;gap:0;overflow-y:auto;}
 .dlg-choice{
   background:transparent;border:none;border-top:2px solid #334155;
   padding:16px 20px;color:#cbd5e1;font-family:'Press Start 2P',monospace;
-  font-size:10px;text-align:left;cursor:pointer;
-  display:flex;align-items:center;gap:12px;line-height:1.5;
+  font-size:9px;text-align:left;cursor:pointer;
+  display:flex;align-items:center;gap:12px;line-height:1.6;
   transition:all 0.15s;
 }
 .dlg-choice:active,.dlg-choice:hover{background:#334155;color:#FFD700; padding-left: 26px;}
 .dlg-choice.ok{color:#50fa7b; background: rgba(80, 250, 123, 0.15);}
 .dlg-choice.ng{color:#ff5555; background: rgba(255, 85, 85, 0.15);}
 
-/* CONTROLS (ТОМРУУЛСАН) */
 #ctrl{
   position:fixed;bottom:0;left:0;right:0;
   display:none;justify-content:space-between;align-items:flex-end;
@@ -133,27 +127,41 @@ body::after {
     transform: translateY(8px); box-shadow: 0 0 0 rgba(0,0,0,0), inset 0 4px 15px rgba(0,0,0,0.4);
 }
 .abtn{
-  border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
+  border-radius:18px;
+  display:flex;align-items:center;justify-content:center; flex-direction:column; gap:5px;
   cursor:pointer;user-select:none;
   -webkit-appearance:none;font-family:'Press Start 2P',monospace;
-  font-weight:bold;
+  font-weight:bold; text-align:center; line-height:1.2;
   transition:all 0.1s;
 }
-#abtn-a{
-    width:85px;height:85px;font-size:18px;
+#abtn-jump{
+    width:85px;height:85px;font-size:10px;
     background:linear-gradient(#64748b, #334155);border:5px solid #FFD700;color:#FFD700;
     box-shadow: 0 10px 0 #aa8800, 0 15px 25px rgba(0,0,0,0.6);
 }
-#abtn-a:active { transform: translateY(10px); box-shadow: 0 0 0 #aa8800, 0 4px 10px rgba(0,0,0,0.8); }
-#abtn-b{
-    width: 70px; height: 70px; font-size: 12px; margin-right: 20px; margin-bottom: 5px;
+#abtn-jump span { font-size:24px; }
+#abtn-jump:active, #abtn-jump.on { transform: translateY(10px); box-shadow: 0 0 0 #aa8800, 0 4px 10px rgba(0,0,0,0.8); }
+
+#abtn-talk{
+    width: 80px; height: 80px; font-size: 10px; margin-right: 10px; margin-bottom: 5px;
     background:linear-gradient(#475569, #1e293b);border:4px solid #6495ED;color:#6495ED;
     box-shadow: 0 8px 0 #3355aa, 0 12px 20px rgba(0,0,0,0.6);
 }
-#abtn-b:active { transform: translateY(8px); box-shadow: 0 0 0 #3355aa, 0 3px 8px rgba(0,0,0,0.8); }
+#abtn-talk span { font-size:22px; }
+#abtn-talk:active { transform: translateY(8px); box-shadow: 0 0 0 #3355aa, 0 3px 8px rgba(0,0,0,0.8); }
 
-/* MINIGAME SHEET */
+/* Top Right Buttons */
+#top-btns { position: fixed; top: 15px; right: 15px; z-index: 9999; display: flex; gap: 12px; }
+.top-btn {
+  background: rgba(15, 23, 42, 0.8); border: 3px solid #FFD700; color: #FFD700;
+  height: 45px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border-radius: 10px; transition: all 0.1s;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5); backdrop-filter: blur(5px);
+  padding: 0 15px; font-size: 12px;
+}
+.top-btn:active { transform: scale(0.9); background: #FFD700; color: #000; }
+.top-btn svg { width: 22px; height: 22px; stroke-width: 2.5; }
+
 #mg-sheet{
   position:fixed;inset:0;z-index:60;
   background:rgba(15, 23, 42, 0.98);
@@ -185,7 +193,6 @@ body::after {
 #mg-close:active{background:#334155; transform: scale(0.95);}
 #mg-body{padding:20px; max-width: 700px; margin: 0 auto;}
 
-/* MG UI COMPONENTS */
 .px-label{font-size:11px;color:#6495ED;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;display:block;}
 .px-card{background:linear-gradient(135deg, #1e293b, #0f172a);border:3px solid #334155;padding:16px;margin-bottom:14px; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.5);}
 .px-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:2px dashed #334155;font-size:10px;color:#cbd5e1;}
@@ -220,13 +227,11 @@ body::after {
 .px-result.ng{background:rgba(26,0,0,0.8);border:3px solid #ff5555;color:#ff5555;}
 .px-info{background:rgba(30,41,59,0.8);border:3px solid #475569;padding:16px;margin-top:12px;font-size:9px;color:#93c5fd;line-height:1.6; border-radius: 8px;}
 
-/* TITLE SCREEN */
 #title{
   position:fixed;inset:0;z-index:100;
   background:#1e293b;
   display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
-  padding:30px 20px;
-  overflow-y:auto;
+  padding:30px 20px; overflow-y:auto;
 }
 #title-bg { position: absolute; inset: 0; z-index: 0; }
 .t-content{margin:auto; position:relative;z-index:1;text-align:center;width:100%;max-width:550px; background: rgba(15,23,42,0.8); padding: 35px; border: 4px solid #334155; border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 20px 50px rgba(0,0,0,0.5);}
@@ -251,13 +256,11 @@ body::after {
   letter-spacing:3px;text-transform:uppercase;
   margin-top:25px; border-radius: 12px;
   box-shadow: 0 10px 0 #aa8800, 0 25px 40px rgba(0,0,0,0.6);
-  transition: all 0.1s;
-  animation: pulse 2s infinite;
+  transition: all 0.1s; animation: pulse 2s infinite;
 }
 .t-btn:active{transform: translateY(10px); box-shadow: 0 0 0 #aa8800, 0 10px 20px rgba(0,0,0,0.6);}
 @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
-/* MAP SCREEN */
 #map-screen{
   position:fixed;inset:0;z-index:70;
   background:linear-gradient(#1e293b, #334155);
@@ -278,7 +281,6 @@ body::after {
 .map-cell.lock{opacity:0.6;cursor:not-allowed; filter: grayscale(100%);}
 .map-emoji{font-size:45px;margin-bottom:15px; filter: drop-shadow(0 8px 6px rgba(0,0,0,0.5));}
 
-/* LEVEL COMPLETE */
 #lc{
   position:fixed;inset:0;z-index:80;
   background:rgba(15, 23, 42, 0.96);
@@ -296,10 +298,9 @@ body::after {
 .lc-pts{font-size:55px;color:#FFD700; text-shadow: 0 8px 0 #aa8800;}
 .lc-max{font-size:10px;color:#94a3b8;margin-bottom:30px;}
 .lc-box{background:#0f172a;border:4px solid #334155;padding:25px;margin-bottom:25px;width:100%;max-width:600px;text-align:left; border-radius: 12px;}
-.lc-item{font-size:10px;color:#cbd5e1;margin-bottom:14px;display:flex;gap:15px;line-height:1.6;}
+.lc-item{font-size:9px;color:#cbd5e1;margin-bottom:14px;display:flex;gap:15px;line-height:1.6;}
 .lc-btns{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;}
 
-/* TOAST */
 .px-toast{
   position:fixed;top:90px;right:25px;
   background:rgba(0, 30, 15, 0.95);border:4px solid #50fa7b;
@@ -315,19 +316,6 @@ body::after {
     100%{opacity:0;transform:translateY(-30px) scale(0.9)}
 }
 
-/* FULLSCREEN BUTTON */
-#fs-btn {
-  position: fixed; top: 15px; right: 15px; z-index: 9999;
-  background: rgba(15, 23, 42, 0.8); border: 3px solid #FFD700; color: #FFD700;
-  width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; border-radius: 10px; transition: all 0.1s;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-  backdrop-filter: blur(5px);
-}
-#fs-btn:active { transform: scale(0.9); background: #FFD700; color: #000; }
-#fs-btn svg { width: 22px; height: 22px; stroke-width: 2.5; }
-
-/* ── ROTATE DEVICE PROMPT ── */
 #rotate-prompt {
   position: fixed; inset: 0; z-index: 10000;
   background: #0f172a; color: #FFD700;
@@ -338,10 +326,8 @@ body::after {
 @keyframes tiltPhone { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } }
 .rot-text { font-size: 14px; line-height: 1.8; text-shadow: 0 4px 15px rgba(255,215,0,0.5); }
 
-/* ── MOBILE RESPONSIVENESS ── */
 #game-container, #ctrl { touch-action: none; user-select: none; -webkit-user-select: none; }
 
-/* iPhone Landscape & Extreme Small Heights (like iPhone 16 Landscape) */
 @media (max-height: 450px) {
   #title { padding: 5px; justify-content: center; }
   .t-content { padding: 15px; margin: 0 auto; max-width: 440px; border-width: 3px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
@@ -361,8 +347,12 @@ body::after {
   
   .dpad { grid-template-columns: 60px 60px; gap: 10px; }
   .dpb { width: 60px; height: 60px; font-size: 24px; border-radius: 12px; border-width: 3px; }
-  #abtn-a { width: 65px; height: 65px; font-size: 14px; border-width: 3px; box-shadow: 0 6px 0 #aa8800; }
-  #abtn-b { width: 50px; height: 50px; font-size: 9px; margin-right: 15px; margin-bottom: 0px; border-width: 3px; box-shadow: 0 5px 0 #3355aa; }
+  
+  #abtn-jump { width: 65px; height: 65px; font-size: 8px; border-width: 3px; box-shadow: 0 6px 0 #aa8800; }
+  #abtn-jump span { font-size: 18px; }
+  #abtn-talk { width: 60px; height: 60px; font-size: 8px; margin-right: 15px; margin-bottom: 0px; border-width: 3px; box-shadow: 0 5px 0 #3355aa; }
+  #abtn-talk span { font-size: 18px; }
+
   #ctrl { padding: 0 max(15px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(15px, env(safe-area-inset-left)); }
 
   #mg-hdr { padding: 10px 15px; border-bottom-width: 2px;}
@@ -395,17 +385,15 @@ body::after {
   .lc-btns { gap: 10px; }
   .lc-btns .px-btn { width: auto; padding: 12px 18px !important; margin: 0 !important;}
   
-  #fs-btn { width: 35px; height: 35px; border-width: 2px; top: 10px; right: 10px;}
-  #fs-btn svg { width: 16px; height: 16px; }
+  .top-btn { height: 35px; font-size: 10px; padding: 0 10px; border-width: 2px;}
+  .top-btn svg { width: 16px; height: 16px; }
 }
 
-/* Portrait Prompt for all phones */
 @media (max-width: 768px) and (orientation: portrait) {
     #rotate-prompt { display: flex; }
-    #title, #game-container, #ui, #hud, #ctrl, #dlg, #mg-sheet, #map-screen, #lc, #fs-btn { display: none !important; }
+    #title, #game-container, #ui, #hud, #ctrl, #dlg, #mg-sheet, #map-screen, #lc, #top-btns { display: none !important; }
 }
 
-/* General Mobile Width adjustments */
 @media (max-width: 768px) {
   .map-grid { grid-template-columns: 1fr; gap: 15px; }
   .t-logo { font-size: clamp(30px, 10vw, 45px); }
@@ -413,26 +401,26 @@ body::after {
 </style>
 </head>
 <body>
-<div id="fs-btn" onclick="toggleFullScreen()">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+<div id="top-btns">
+  <div class="top-btn" onclick="goMap()">🗺️ MAP</div>
+  <div class="top-btn" onclick="toggleFullScreen()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+  </div>
 </div>
+
 <div id="rotate-prompt">
   <div class="rot-icon">📱</div>
   <div class="rot-text">ТОГЛОХЫН ТУЛД<br>УТСАА ХЭВТЭЭ БОЛГОНО УУ</div>
 </div>
-<div id="game-container">
-    <canvas id="c"></canvas>
-</div>
+<div id="game-container"><canvas id="c"></canvas></div>
 <div id="ui"></div>
 
-<!-- HUD -->
 <div id="hud">
-  <div class="hud-chip">💰 <span class="v" id="h-bal">₮500,000</span></div>
+  <div class="hud-chip">💰 <span class="v" id="h-bal" style="color:#50fa7b">₮500,000</span></div>
   <div class="hud-chip">⭐ <span class="v" id="h-pts">0</span></div>
   <div id="hud-lvbadge">ҮЕ 1</div>
 </div>
 
-<!-- DIALOG -->
 <div id="dlg">
   <div id="dlg-inner">
     <div id="dlg-face-container"><canvas id="dlg-face"></canvas></div>
@@ -445,19 +433,17 @@ body::after {
   <div id="dlg-choices"></div>
 </div>
 
-<!-- TOUCH CONTROLS -->
 <div id="ctrl" oncontextmenu="return false;">
   <div class="dpad">
     <div class="dpb" id="dp-l">◀</div>
     <div class="dpb" id="dp-r">▶</div>
   </div>
-  <div style="display:flex;gap:20px;align-items:flex-end;">
-    <div class="abtn" id="abtn-b">MAP</div>
-    <div class="abtn" id="abtn-a">A</div>
+  <div style="display:flex;gap:10px;align-items:flex-end;">
+    <div class="abtn" id="abtn-talk"><span>💬</span>ЯРИХ</div>
+    <div class="abtn" id="abtn-jump"><span>▲</span>ҮСРЭХ</div>
   </div>
 </div>
 
-<!-- MINIGAME -->
 <div id="mg-sheet">
   <div id="mg-hdr">
     <div><div id="mg-title">MINI GAME</div><div id="mg-sub"></div></div>
@@ -466,7 +452,6 @@ body::after {
   <div id="mg-body"></div>
 </div>
 
-<!-- TITLE -->
 <div id="title">
   <canvas id="title-bg"></canvas>
   <div class="t-content">
@@ -484,21 +469,19 @@ body::after {
   </div>
 </div>
 
-<!-- MAP -->
 <div id="map-screen">
   <div id="map-hdr"><h2>★ ГАЗРЫН ЗУРАГ ★</h2><p>ҮЕ СОНГОНО УУ</p></div>
   <div class="map-grid" id="map-grid"></div>
   <div style="height:60px"></div>
 </div>
 
-<!-- LEVEL COMPLETE -->
 <div id="lc">
   <div class="lc-box-anim" style="display:flex; flex-direction:column; align-items:center;">
       <div class="lc-big" id="lc-em">🎉</div>
       <div class="lc-h" id="lc-h">ҮЕ ДУУССАН!</div>
       <div class="lc-s" id="lc-s">Амжилттай</div>
       <div class="lc-pts" id="lc-pts">0</div>
-      <div class="lc-max">ОНОО / 500-ААС</div>
+      <div class="lc-max">ОНОО</div>
       <div class="lc-box" id="lc-box"></div>
       <div class="lc-btns">
         <div class="px-btn" style="width:auto; padding:22px 36px; margin:0;" onclick="goMap()">🗺 MAP</div>
@@ -525,7 +508,6 @@ const PAL = [
   [50,200,80,255],  // 12 green
 ];
 
-// Player frames
 const SPR_PLAYER_IDLE = [
   [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0],
   [0,0,0,0,0,2,1,1,1,1,2,0,0,0,0,0],
@@ -581,7 +563,6 @@ const SPR_PLAYER_W2 = [
   [0,0,0,0,0,0,0,5,5,0,0,0,0,0,0,0],
 ];
 
-// NPCs
 const SPR_TELLER = [
   [0,0,0,0,0,2,2,2,2,2,0,0,0,0,0,0],
   [0,0,0,0,2,1,1,1,1,1,2,0,0,0,0,0],
@@ -654,9 +635,26 @@ const SPR_ROBOT = [
   [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
   [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
 ];
-const NPC_SPRS = [SPR_TELLER, SPR_ADVISOR, SPR_GUARD, SPR_ROBOT];
+const SPR_WORKER = [
+  [0,0,0,0,0,10,10,10,10,10,0,0,0,0,0,0],
+  [0,0,0,0,10,1,1,1,1,1,10,0,0,0,0,0],
+  [0,0,0,0,10,1,1,1,1,1,10,0,0,0,0,0],
+  [0,0,0,0,10,1,6,1,1,6,10,0,0,0,0,0],
+  [0,0,0,0,0,10,1,11,11,1,10,0,0,0,0,0],
+  [0,0,0,0,0,0,10,10,10,10,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,10,10,10,0,0,0,0,0,0,0,0],
+  [0,0,0,10,10,10,10,10,10,10,10,0,0,0,0,0],
+  [0,0,10,10,10,10,10,10,10,10,10,10,0,0,0,0],
+  [0,0,10,10,8,10,10,10,10,8,10,10,0,0,0,0],
+  [0,0,0,10,10,10,10,10,10,10,10,0,0,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
+  [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
+];
+const NPC_SPRS = [SPR_TELLER, SPR_ADVISOR, SPR_GUARD, SPR_ROBOT, SPR_WORKER];
 
-// Decorations
 const SPR_ATM = [
   [0,6,6,6,6,6,6,6,6,6,6,6,6,6,6,0],
   [6,4,4,4,4,4,4,4,4,4,4,4,4,4,4,6],
@@ -741,6 +739,7 @@ function getSpriteKey(sprArray, palOvr, flipX) {
               (sprArray === SPR_ADVISOR) ? 'adv' : 
               (sprArray === SPR_GUARD) ? 'guard' : 
               (sprArray === SPR_ROBOT) ? 'bot' : 
+              (sprArray === SPR_WORKER) ? 'work' : 
               (sprArray === SPR_ATM) ? 'atm' : 
               (sprArray === SPR_DESK) ? 'desk' : 
               (sprArray === SPR_DOOR) ? 'door' : 
@@ -753,7 +752,7 @@ function getSpriteKey(sprArray, palOvr, flipX) {
 function preRenderSprite(spr, palOvr, flipX) {
   const size = spr.length;
   const oc = document.createElement('canvas');
-  oc.width = (size + 2) * SCALE; // Add 2 pixels of padding for outline
+  oc.width = (size + 2) * SCALE;
   oc.height = (size + 2) * SCALE;
   const octx = oc.getContext('2d');
   
@@ -763,7 +762,6 @@ function preRenderSprite(spr, palOvr, flipX) {
      return spr[r][pc] !== 0;
   };
 
-  // 1. Draw Edge Outline (Light slate to pop from backgrounds)
   octx.fillStyle = 'rgba(15, 23, 42, 0.85)'; 
   for (let row = -1; row <= size; row++) {
     for (let col = -1; col <= size; col++) {
@@ -776,7 +774,6 @@ function preRenderSprite(spr, palOvr, flipX) {
     }
   }
 
-  // 2. Draw Main Sprite
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
       if (isVis(row, col)) {
@@ -800,10 +797,10 @@ function drawSprite(ctx, spr, wx, wy, palOverrides, flipX) {
 }
 
 const AV_PALETTES = [
-  null, // default blue
-  { 3: [220,80,80,255], 4: [100,40,40,255] },   // red shirt
-  { 3: [50,150,80,255], 4: [20,80,40,255] },     // green shirt
-  { 3: [150,80,200,255], 4: [70,30,120,255] },   // purple shirt
+  null,
+  { 3: [220,80,80,255], 4: [100,40,40,255] },
+  { 3: [50,150,80,255], 4: [20,80,40,255] },
+  { 3: [150,80,200,255], 4: [70,30,120,255] },
 ];
 const AV_SKIN = [
   [255,205,148,255], [240,190,130,255],
@@ -819,9 +816,7 @@ function getPlayerPal(avIdx) {
 function drawAvatarPreview(canvas, avIdx) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const spr = SPR_PLAYER_IDLE;
-  const pal = getPlayerPal(avIdx);
-  const img = preRenderSprite(spr, pal, false);
+  const img = preRenderSprite(SPR_PLAYER_IDLE, getPlayerPal(avIdx), false);
   ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, canvas.width, canvas.height);
 }
 
@@ -836,21 +831,18 @@ function drawNPCFace(canvas, npcIdx) {
 const GS = {
   av: 0, balance: 500000, pts: 0,
   done: new Set(), lvl: 0,
-  phase: 'title', // title|playing|dialog|mg|map|lc
+  phase: 'title', 
 };
 
-const inp = { left: false, right: false };
+const inp = { left: false, right: false, up: false };
 const plr = {
-  wx: 150, // world x
+  wx: 150, wy: 0, vy: 0, grounded: true,
   spd: 5, facing: 1,
   frame: 0, fTimer: 0,
   sprW: 16 * SCALE, sprH: 16 * SCALE,
 };
 
-let camX = 0;
-let targetCamX = 0;
-let screenShake = 0;
-
+let camX = 0, targetCamX = 0, screenShake = 0;
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 let W, H;
@@ -859,9 +851,6 @@ function resize() {
   W = window.innerWidth; H = window.innerHeight;
   canvas.width = W; canvas.height = H;
   ctx.imageSmoothingEnabled = false;
-  ctx.mozImageSmoothingEnabled = false;
-  ctx.webkitImageSmoothingEnabled = false;
-  ctx.msImageSmoothingEnabled = false;
   window.scrollTo(0, 0);
 }
 resize();
@@ -872,66 +861,61 @@ const tctx = tc.getContext('2d');
 const LEVELS = [
   {
     id:1, emoji:'🏦', name:'Оюутны амьдрал',
-    theme: 'city',
-    bgTop:'#475569', bgBot:'#1e293b', // Lighter Slate
+    theme: 'city', bgTop:'#475569', bgBot:'#1e293b', 
     floorCol: [100, 116, 139], wallCol: [71, 85, 105], accentCol: [96, 165, 250],
     worldW: 2800,
     coins: [350, 500, 1100, 1250, 1900, 2050, 2400],
     npcs: [
       { wx:400, sprIdx:0, name:'ТЕЛЛЕР БОЛОРМАА', color:'#fca5a5', faceIdx:0,
         dialog:[
-          {speaker:'ТЕЛЛЕР БОЛОРМАА',text:'Сайн байна уу! Төрийн банкинд тавтай морилно уу! Танд яаж туслах вэ?'},
-          {speaker:'ТЕЛЛЕР БОЛОРМАА',text:'Харилцах данс нь өдөр тутмын гүйлгээнд тохиромжтой. Дебит карт хамт олгоно. Ямар данс нээлгэхийг хүсч байна?'}
+          {speaker:'ТЕЛЛЕР БОЛОРМАА',text:'Төрийн банкинд тавтай морилно уу! Танд дебит болон кредит картын талаар шалгалт өгье.'}
         ],
-        quiz:{q:'ОЮУТАНД АЛЬ ДАНС ТОХИРОМЖТОЙ ВЭ?',
+        quiz:{q:'КРЕДИТ БОЛОН ДЕБИТ КАРТЫН ГОЛ ЯЛГАА?',
           ch:[
-            {i:'💳',t:'Харилцах данс — гүйлгээ, дебит карт',ok:true},
-            {i:'🏛',t:'Хадгаламжийн данс — өндөр хүү',ok:false},
+            {i:'💳',t:'Дебит нь таны өөрийн мөнгө, Кредит нь банкны богино хугацаат зээл юм.',ok:true},
+            {i:'🏛',t:'Кредит карт хүүгүй байдаг, Дебит нь үргэлж хүүтэй байдаг.',ok:false},
           ],
-          gf:'✓ ЗӨВ! ХАРИЛЦАХ ДАНС НЭЭЖ ДЕБИТ КАРТАА АВЛАА!',
-          bf:'✗ ХАРИЛЦАХ ДАНС НЬ ӨДӨР ТУТМЫН ГҮЙЛГЭЭНД ИЛҮҮ ТОХИРОМЖТОЙ.',
-          rw:40, info:'ХАРИЛЦАХ ДАНС: Хязгааргүй гүйлгээ хийж, карттай холбогдоно.'}
+          gf:'✓ ЗӨВ! КРЕДИТ БОЛ БОГИНО ХУГАЦААНЫ ЗЭЭЛ ТУЛ ХУГАЦААНД НЬ ТӨЛӨХ ЧУХАЛ. +₮20,000',
+          bf:'✗ БУРУУ! ДЕБИТ НЬ ТАНЫ ӨӨРИЙН ДАНСАН ДАХЬ МӨНГӨ ЮМ.',
+          rw:50, rwMoney:20000, info:'Кредит картыг хугацаанд нь төлбөл хүүгүй зээл болж чаддаг ухаалаг хэрэгсэл юм.'}
       },
-      { wx:1000, sprIdx:3, name:'ЦАХИМ ТУСЛАГЧ', color:'#86efac', faceIdx:3,
-        dialog:[{speaker:'ЦАХИМ ТУСЛАГЧ',text:'САРЫН ТӨСӨВ ЗОХИОХОД ТАНД ТУСАЛЪЯ!'}],
-        mg:'budget'
+      { wx:1000, sprIdx:4, name:'FREELANCE АЖИЛ', color:'#fde047', faceIdx:4,
+        dialog:[{speaker:'АЖИЛ ЗУУЧЛАГЧ',text:'МӨНГӨНИЙ ХЭРЭГЦЭЭ ГАРСАН УУ? КОД БИЧИЖ ЦАГИЙН АЖИЛ ХИЙ!'}],
+        mg:'work'
       },
       { wx:1600, sprIdx:2, name:'АЮУЛГҮЙ БАЙДАЛ', color:'#fcd34d', faceIdx:2,
-        dialog:[{speaker:'АЮУЛГҮЙ БАЙДАЛ',text:'PIN КОДОО ХАМГААЛ! ДЭЛГҮҮРТ КАРТААРАА ТООЦОО ХИЙГЭЭРЭЙ.'}],
+        dialog:[{speaker:'АЮУЛГҮЙ БАЙДАЛ',text:'ОЛСОН МӨНГӨӨ ДЭЛГҮҮРТ ЗАРЦУУЛЖ СУРААРАЙ.'}],
         mg:'shopping'
       },
     ],
-    deco:[
-      {wx:200,spr:SPR_DESK},{wx:750,spr:SPR_ATM},{wx:1350,spr:SPR_PLANT},{wx:2200,spr:SPR_DESK},
-    ],
+    deco:[ {wx:200,spr:SPR_DESK},{wx:750,spr:SPR_ATM},{wx:1350,spr:SPR_PLANT},{wx:2200,spr:SPR_DESK} ],
     door:{wx:2650, label:'ГАРАХ →'},
   },
   {
     id:2, emoji:'📱', name:'Цахим Банк',
-    theme: 'matrix',
-    bgTop:'#0f766e', bgBot:'#064e3b', // Lighter Teal
+    theme: 'matrix', bgTop:'#0f766e', bgBot:'#064e3b', 
     floorCol: [16, 185, 129], wallCol: [4, 120, 87], accentCol: [110, 231, 183],
     worldW: 2800,
     coins: [400, 600, 1200, 1400, 1800, 2100, 2300],
     npcs: [
       { wx:350, sprIdx:3, name:'ГЯЛС БАНК', color:'#6ee7b7', faceIdx:3,
-        dialog:[{speaker:'ГЯЛС БАНК',text:'ГЯЛС БАНК АППЛИКЕЙШНООР ТӨЛБӨР ТӨЛЖ, ШИЛЖҮҮЛЭГ ХИЙНЭ ҮҮ!'}],
+        dialog:[{speaker:'ГЯЛС БАНК',text:'ГЯЛС БАНК АППЛИКЕЙШНООР ТӨЛБӨРӨӨ ТӨЛӨӨРЭЙ!'}],
         mg:'gyalsbank'
       },
-      { wx:1050, sprIdx:2, name:'КИБЕР ХАМГААЛАЛТ', color:'#fca5a5', faceIdx:2,
-        dialog:[{speaker:'КИБЕР ХАМГААЛАЛТ',text:'⚠ АНХААР! ФИШИНГ ХАЛДЛАГА ТАРХАЖ БАЙНА. МЕССЕЖИЙГ ШАЛГААРАЙ!'}],
-        mg:'phishing'
+      { wx:1050, sprIdx:4, name:'FREELANCE АЖИЛ', color:'#fde047', faceIdx:4,
+        dialog:[{speaker:'АЖИЛ ЗУУЧЛАГЧ',text:'ЦАГИЙН АЖИЛ ХИЙЖ МӨНГӨӨ ӨСГӨӨРЭЙ!'}],
+        mg:'work'
       },
-      { wx:1700, sprIdx:1, name:'ДИЖИТАЛ МЕНЕЖЕР', color:'#93c5fd', faceIdx:1,
-        dialog:[{speaker:'ДИЖИТАЛ МЕНЕЖЕР',text:'МОБАЙЛ БАНКИНГИЙН АЧ ХОЛБОГДЛЫГ МЭДЭХ ҮҮ?'}],
-        quiz:{q:'МОБАЙЛ БАНКИНГИЙН ХАМГИЙН ТОМ ДАВУУ ТАЛ?',
+      { wx:1700, sprIdx:1, name:'КИБЕР МЕНЕЖЕР', color:'#93c5fd', faceIdx:1,
+        dialog:[{speaker:'КИБЕР МЕНЕЖЕР',text:'ФИШИНГ ХАЛДЛАГААС ЯАЖ ХАМГААЛАХ ВЭ?'}],
+        quiz:{q:'ФИШИНГ (PHISHING) ХАЛДЛАГААС ХЭРХЭН СЭРГИЙЛЭХ ВЭ?',
           ch:[
-            {i:'⏰',t:'24/7 хаанаас ч гүйлгээ хийх боломж',ok:true},
-            {i:'💵',t:'Бэлэн мөнгөний хязгаар өндөр',ok:false},
+            {i:'🔒',t:'URL хаягийг үргэлж шалгах, OTP кодоо хэнд ч өгөхгүй байх.',ok:true},
+            {i:'📱',t:'Банкнаас залгаж байна гэвэл итгэж нууц үгээ хэлэх.',ok:false},
           ],
-          gf:'✓ ЗӨВ! ЦАГ ХУГАЦАА, ОРОН ЗАЙНААС ҮЛ ХАМААРНА.',
-          bf:'✗ ХАМГИЙН ТОМ ДАВУУ ТАЛ НЬ 24/7 БОЛОМЖ ЮМ.',
-          rw:35,info:'Монголын мобайл банкны хэрэглэгчид жил бүр өсч байна.'}
+          gf:'✓ ЗӨВ! БАНК ХЭЗЭЭ Ч ТАНЫ НУУЦ ҮГИЙГ АСУУХГҮЙ. +₮20,000',
+          bf:'✗ БУРУУ! БАНК НЬ ТАНААС ХЭЗЭЭ Ч OTP БОЛОН НУУЦ ҮГ АСУУДАГГҮЙ.',
+          rw:50, rwMoney:20000, info:'Фишинг нь хуурамч линкээр таны мэдээллийг хулгайлах хамгийн түгээмэл залилан юм.'}
       },
     ],
     deco:[ {wx:200,spr:SPR_ATM},{wx:700,spr:SPR_PLANT},{wx:1400,spr:SPR_ATM},{wx:2000,spr:SPR_PLANT} ],
@@ -939,8 +923,7 @@ const LEVELS = [
   },
   {
     id:3, emoji:'🌍', name:'Олон Улс',
-    theme: 'cyber',
-    bgTop:'#4338ca', bgBot:'#312e81', // Lighter Indigo
+    theme: 'cyber', bgTop:'#4338ca', bgBot:'#312e81', 
     floorCol: [99, 102, 241], wallCol: [79, 70, 229], accentCol: [167, 139, 250],
     worldW: 2800,
     coins: [400, 650, 1100, 1300, 1850, 2100, 2450],
@@ -954,15 +937,15 @@ const LEVELS = [
         mg:'currency'
       },
       { wx:1700, sprIdx:3, name:'ДЭЛХИЙН ХАНДЛАГА', color:'#86efac', faceIdx:3,
-        dialog:[{speaker:'ДЭЛХИЙН ХАНДЛАГА',text:'ОЛОН УЛСЫН ФИНТЕК АППУУДЫН ТУХАЙ АСУУЛТАД ХАРИУЛНА УУ.'}],
-        quiz:{q:'REVOLUT/WISE-ИЙН ГОЛ ДАВУУ ТАЛ ЮУ ВЭ?',
+        dialog:[{speaker:'ДЭЛХИЙН ХАНДЛАГА',text:'ОЛОН УЛСЫН ГҮЙЛГЭЭНИЙ ТУХАЙ АСУУЛТАД ХАРИУЛНА УУ.'}],
+        quiz:{q:'ОЛОН УЛСЫН ГҮЙЛГЭЭНД ФИНТЕК (REVOLUT) БА SWIFT-ИЙН ЯЛГАА?',
           ch:[
-            {i:'💸',t:'Гадаад шилжүүлэгт хямд шимтгэл, хурдан',ok:true},
-            {i:'🏦',t:'Монголд олон салбартай',ok:false},
+            {i:'⚡',t:'Финтек нь зуучлагч банкгүй тул шимтгэл бага, хурдан байдаг.',ok:true},
+            {i:'🐢',t:'SWIFT нь үргэлж илүү хямд бас хурдан байдаг.',ok:false},
           ],
-          gf:'✓ ЗӨВ! ХЯМД ШИМТГЭЛ, ХУРДАН ГҮЙЛГЭЭ НЬ ФИНТЕКИЙН ДАВУУ ТАЛ.',
-          bf:'✗ ТЭД МОНГОЛД САЛБАРГҮЙ. ГОЛ ДАВУУ ТАЛ НЬ ХЯМД ШИМТГЭЛ.',
-          rw:40,info:'Финтек аппууд нь уламжлалт банкнаас бага шимтгэл санал болгодог.'}
+          gf:'✓ ЗӨВ! ШУУД ХОЛБОЛТ НЬ ЗАРДЛЫГ БОДИТООР БУУРУУЛДАГ. +₮20,000',
+          bf:'✗ БУРУУ! SWIFT-Д ОЛОН ЗУУЧЛАГЧ ОРОЛЦДОГ ТУЛ УДААН БӨГӨӨД ҮНЭТЭЙ.',
+          rw:50, rwMoney:20000, info:'Уламжлалт SWIFT гүйлгээ 2-5 хоног зарцуулдаг бол Финтек хэдхэн секундэд очдог.'}
       },
     ],
     deco:[ {wx:200,spr:SPR_PLANT},{wx:700,spr:SPR_ATM},{wx:1400,spr:SPR_DESK},{wx:2000,spr:SPR_PLANT} ],
@@ -970,8 +953,7 @@ const LEVELS = [
   },
   {
     id:4, emoji:'📈', name:'Ирээдүйн Санхүү',
-    theme: 'future',
-    bgTop:'#a16207', bgBot:'#713f12', // Lighter Gold/Brown
+    theme: 'future', bgTop:'#a16207', bgBot:'#713f12',
     floorCol: [234, 179, 8], wallCol: [202, 138, 4], accentCol: [250, 204, 21],
     worldW: 2800,
     coins: [300, 500, 800, 1100, 1400, 1700, 2000, 2300],
@@ -985,15 +967,15 @@ const LEVELS = [
         mg:'loan'
       },
       { wx:1700, sprIdx:3, name:'САНХҮҮГИЙН AI', color:'#93c5fd', faceIdx:3,
-        dialog:[{speaker:'САНХҮҮГИЙН AI',text:'НИЙЛМЭЛ ХҮҮ НЬ ТАНЫ ХӨРӨНГИЙГ ХУРДАН ӨСГӨДӨГ.'}],
-        quiz:{q:'ХАМГИЙН УХААЛАГ САНХҮҮГИЙН ЗУРШИЛ АЛЬ ВЭ?',
+        dialog:[{speaker:'САНХҮҮГИЙН AI',text:'ХӨРӨНГИЙН ЗАХ ЗЭЭЛИЙН ТАЛААР МЭДЛЭГЭЭ ШАЛГААРАЙ.'}],
+        quiz:{q:'ХӨРӨНГӨ ОРУУЛАЛТЫН СОЛОНГОРОУУЛАЛТ (DIVERSIFICATION) ГЭЖ ЮУ ВЭ?',
           ch:[
-            {i:'💰',t:'Орлогоос 15-20% тогтмол хадгалж эрт эхлэх',ok:true},
-            {i:'🎰',t:'Бүх мөнгөө өндөр эрсдэлтэй хувьцаанд хийх',ok:false},
+            {i:'🧺',t:'Эрсдэлийг бууруулахын тулд олон төрлийн хөрөнгөд хувааж байршуулах.',ok:true},
+            {i:'🎯',t:'Бүх мөнгөө хамгийн өндөр өгөөжтэй ганцхан хувьцаанд хийх.',ok:false},
           ],
-          gf:'✓ ГАЙХАЛТАЙ! НИЙЛМЭЛ ХҮҮ + ТОГТМОЛ ХАДГАЛАМЖ = АМЖИЛТ!',
-          bf:'✗ ӨНДӨР ЭРСДЭЛД БҮХ МӨНГИЙГ ХИЙХ НЬ АЮУЛТАЙ.',
-          rw:50,info:'Тогтмол хуримтлал үүсгэж, урт хугацаанд хөрөнгө оруулах нь баттай арга.'}
+          gf:'✓ ГАЙХАЛТАЙ! "БҮХ ӨНДГӨӨ НЭГ САГСАНД БҮҮ ХИЙ" ГЭДЭГ. +₮20,000',
+          bf:'✗ БУРУУ! НЭГ ЗҮЙЛД БҮХ МӨНГӨӨ ХИЙХ НЬ МАШ АЮУЛТАЙ.',
+          rw:60, rwMoney:20000, info:'Солонгоруулалт нь зах зээлийн гэнэтийн уналтын үед таны хөрөнгийг хамгаална.'}
       },
       { wx:2400, sprIdx:0, name:'ТӨГСГӨЛ', color:'#fde047', faceIdx:0,
         dialog:[
@@ -1008,8 +990,7 @@ const LEVELS = [
   },
 ];
 
-let particles = [];
-let actCoins = []; 
+let particles = [], actCoins = []; 
 
 function addParticle(x, y, color, type='spark') {
   const cnt = type === 'burst' ? 20 : type === 'dust' ? 4 : 8;
@@ -1025,15 +1006,13 @@ function addParticle(x, y, color, type='spark') {
 }
 
 function addFloatingText(x, y, text, color) {
-    particles.push({
-        x, y, vx: 0, vy: -2, life: 80, maxLife: 80, text, color, type: 'text'
-    });
+    particles.push({ x, y, vx: 0, vy: -2, life: 80, maxLife: 80, text, color, type: 'text' });
 }
 
 function updateParticles() {
   particles = particles.filter(p => {
     p.x += p.vx; p.y += p.vy; 
-    if(p.type !== 'text') p.vy += 0.35; // gravity
+    if(p.type !== 'text') p.vy += 0.35; 
     p.life--;
     return p.life > 0;
   });
@@ -1050,8 +1029,8 @@ function drawParticles(ctx, camX) {
     const alpha = p.life / p.maxLife;
     ctx.globalAlpha = alpha;
     if (p.type === 'text') {
-        ctx.fillStyle = '#0f172a'; // shadow
-        ctx.font = `24px 'Press Start 2P'`;
+        ctx.fillStyle = '#0f172a';
+        ctx.font = `20px 'Press Start 2P'`;
         ctx.fillText(p.text, p.x - camX + 3, p.y + 3);
         ctx.fillStyle = p.color;
         ctx.fillText(p.text, p.x - camX, p.y);
@@ -1067,14 +1046,14 @@ function spawnLevelCoins(lv) {
     actCoins = [];
     if(lv.coins) {
         lv.coins.forEach(cx => {
-            actCoins.push({ x: cx, y: getFloorY() - 110 - Math.random()*50, collected: false, phase: Math.random()*Math.PI*2 });
+            // Coins are high up, forcing player to jump
+            actCoins.push({ x: cx, y: getFloorY() - 130 - Math.random()*40, collected: false, phase: Math.random()*Math.PI*2 });
         });
     }
 }
 
 function triggerShake(amt) { screenShake = amt; }
-
-function getFloorY() { return Math.floor(H * 0.72); }
+function getFloorY() { return Math.floor(H * 0.75); }
 
 let animTime = 0;
 
@@ -1082,10 +1061,8 @@ function drawParallaxBackground(ctx, lv, camX) {
     const bg = ctx.createLinearGradient(0, 0, 0, H);
     bg.addColorStop(0, lv.bgTop); bg.addColorStop(1, lv.bgBot);
     ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
-
     const FY = getFloorY();
     
-    // Theme specific layers
     if (lv.theme === 'city') {
         ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
         for(let i=0; i<6; i++) {
@@ -1094,14 +1071,14 @@ function drawParallaxBackground(ctx, lv, camX) {
             ctx.beginPath(); ctx.ellipse(cx, cy, 90, 35, 0, 0, Math.PI*2); ctx.fill();
             ctx.beginPath(); ctx.ellipse(cx+45, cy-25, 55, 35, 0, 0, Math.PI*2); ctx.fill();
         }
-        ctx.fillStyle = '#64748b'; // far layer
+        ctx.fillStyle = '#64748b'; 
         for(let i=0; i<30; i++) {
             let bx = (i * 150 - camX * 0.1) % (W + 300) - 150;
             if(bx < -200) bx += (W+400);
             let bh = 150 + (i%5)*60;
             ctx.fillRect(bx, FY - bh, 100, bh);
         }
-        ctx.fillStyle = '#475569'; // mid layer
+        ctx.fillStyle = '#475569'; 
         for(let i=0; i<20; i++) {
             let bx = (i * 220 - camX * 0.3) % (W + 300) - 150;
             if(bx < -200) bx += (W+400);
@@ -1117,21 +1094,11 @@ function drawParallaxBackground(ctx, lv, camX) {
             let dropY = (Date.now()*0.15 + i*15) % H;
             ctx.fillRect((i - camX*0.2)%W, dropY, 8, 90);
         }
-        ctx.fillStyle = '#05966955';
-        for(let i=0; i<W; i+=100) {
-            let dropY = (Date.now()*0.25 + i*9) % H;
-            ctx.fillRect((i - camX*0.5)%W, dropY, 14, 150);
-        }
     } else if (lv.theme === 'cyber') {
         ctx.strokeStyle = '#818cf844'; ctx.lineWidth = 3;
         ctx.beginPath();
-        for(let i=0; i<W; i+=80) {
-            let x = (i - camX*0.2)%W;
-            ctx.moveTo(x, 0); ctx.lineTo(x, FY);
-        }
-        for(let y=0; y<FY; y+=80) {
-            ctx.moveTo(0, y); ctx.lineTo(W, y);
-        }
+        for(let i=0; i<W; i+=80) { let x = (i - camX*0.2)%W; ctx.moveTo(x, 0); ctx.lineTo(x, FY); }
+        for(let y=0; y<FY; y+=80) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
         ctx.stroke();
     } else if (lv.theme === 'future') {
         for(let i=0; i<25; i++) {
@@ -1139,8 +1106,7 @@ function drawParallaxBackground(ctx, lv, camX) {
             let h = 100 + (Math.sin(i + Date.now()*0.001)*0.5+0.5) * 350;
             let grad = ctx.createLinearGradient(0, FY-h, 0, FY);
             grad.addColorStop(0, '#facc1588'); grad.addColorStop(1, '#facc1500');
-            ctx.fillStyle = grad;
-            ctx.fillRect(bx, FY-h, 90, h);
+            ctx.fillStyle = grad; ctx.fillRect(bx, FY-h, 90, h);
         }
     }
 }
@@ -1152,10 +1118,8 @@ function render() {
 
   let sx = 0, sy = 0;
   if (screenShake > 0) {
-      sx = (Math.random()-0.5) * screenShake;
-      sy = (Math.random()-0.5) * screenShake;
-      screenShake *= 0.85;
-      if (screenShake < 0.5) screenShake = 0;
+      sx = (Math.random()-0.5) * screenShake; sy = (Math.random()-0.5) * screenShake;
+      screenShake *= 0.85; if (screenShake < 0.5) screenShake = 0;
   }
 
   ctx.save();
@@ -1168,39 +1132,25 @@ function render() {
 
   drawParallaxBackground(ctx, lv, camX);
 
-  // Back Wall
   const [wr, wg, wb] = lv.wallCol;
   ctx.fillStyle = `rgb(${wr},${wg},${wb})`;
   ctx.fillRect(0, CEIL_Y, W, FY - CEIL_Y);
 
-  // Wall Grid Pattern
-  ctx.strokeStyle = `rgba(255,255,255,0.08)`;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
+  ctx.strokeStyle = `rgba(255,255,255,0.08)`; ctx.lineWidth = 2; ctx.beginPath();
   for (let y = CEIL_Y; y <= FY; y += 50) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
   for (let x = -(camX % 60); x < W; x += 60) { ctx.moveTo(x, CEIL_Y); ctx.lineTo(x, FY); }
   ctx.stroke();
 
-  // Wall Monitors / Posters
   for (let mx = 300; mx < lv.worldW; mx += 450) {
       const screenX = mx - camX;
       if (screenX > -150 && screenX < W + 150) {
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(screenX, CEIL_Y + 50, 150, 100);
-        
+        ctx.fillStyle = '#0f172a'; ctx.fillRect(screenX, CEIL_Y + 50, 150, 100);
         const glow = Math.sin(t * 0.005 + mx) * 0.15 + 0.25;
         ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},${glow})`;
         ctx.fillRect(screenX + 5, CEIL_Y + 55, 140, 90);
-
-        ctx.fillStyle = `rgba(255,255,255,0.6)`;
-        ctx.fillRect(screenX + 20, CEIL_Y + 110, 20, 25);
-        ctx.fillRect(screenX + 50, CEIL_Y + 90, 20, 45);
-        ctx.fillRect(screenX + 80, CEIL_Y + 70, 20, 65);
-        ctx.fillRect(screenX + 110, CEIL_Y + 100, 20, 35);
       }
   }
 
-  // Wall Pillars / Lights
   ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.2)`;
   for (let lx = 0; lx < W + 300; lx += 300) {
     const startX = lx - (camX % 300);
@@ -1211,33 +1161,23 @@ function render() {
     ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.2)`;
   }
 
-  // Floor
   const [fr, fg_, fb] = lv.floorCol;
   const flrGrad = ctx.createLinearGradient(0, FY, 0, H);
   flrGrad.addColorStop(0, `rgb(${fr},${fg_},${fb})`);
   flrGrad.addColorStop(0.3, `rgb(${Math.floor(fr*0.6)},${Math.floor(fg_*0.6)},${Math.floor(fb*0.6)})`);
   flrGrad.addColorStop(1, '#0f172a');
-  ctx.fillStyle = flrGrad;
-  ctx.fillRect(0, FY, W, H - FY);
+  ctx.fillStyle = flrGrad; ctx.fillRect(0, FY, W, H - FY);
   
-  // Floor Tiles Pattern
-  ctx.strokeStyle = `rgba(0,0,0,0.2)`;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
+  ctx.strokeStyle = `rgba(0,0,0,0.2)`; ctx.lineWidth = 2; ctx.beginPath();
   for(let y = FY; y < H; y += 35) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
-  for(let x = -(camX % 60); x < W + 150; x += 60) { 
-      ctx.moveTo(x, FY); ctx.lineTo(x - (H-FY)*0.6, H); // Skew
-  }
+  for(let x = -(camX % 60); x < W + 150; x += 60) { ctx.moveTo(x, FY); ctx.lineTo(x - (H-FY)*0.6, H); }
   ctx.stroke();
 
-  // Floor accent line
   ctx.fillStyle = `rgb(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]})`;
   ctx.fillRect(0, FY, W, 8);
 
-  // Ambient Particles
   if(Math.random() < 0.15) addParticle(Math.random()*W + camX, Math.random()*H, `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.6)`, 'dust');
 
-  // Decorations
   lv.deco.forEach(d => {
     const dx = d.wx - camX;
     if (dx < -150 || dx > W + 150) return;
@@ -1245,9 +1185,7 @@ function render() {
     drawSprite(ctx, d.spr, dx - (sprSize * SCALE) / 2, FY - sprSize * SCALE, null, false);
   });
 
-  // Door
-  const dw = lv.door;
-  const dScreenX = dw.wx - camX;
+  const dw = lv.door; const dScreenX = dw.wx - camX;
   if (dScreenX > -150 && dScreenX < W + 150) {
     const glow = 0.6 + Math.sin(t * 0.005) * 0.4;
     ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 40 * glow;
@@ -1255,24 +1193,23 @@ function render() {
     ctx.shadowBlur = 0;
     
     if (Math.abs(plr.wx - dw.wx) < 140) {
-      ctx.fillStyle = 'rgba(15,23,42,0.9)';
-      ctx.fillRect(dScreenX - 80, FY - 120, 160, 30);
+      ctx.fillStyle = 'rgba(15,23,42,0.9)'; ctx.fillRect(dScreenX - 80, FY - 120, 160, 30);
       drawPixelText(ctx, dw.label, dScreenX - 65, FY - 98, '#FFD700', 1.8);
     }
   }
 
-  // Coins
+  // Coins Rendering
   actCoins.forEach(c => {
       if(c.collected) return;
       let cx = c.x - camX;
       if(cx < -50 || cx > W+50) return;
-      let cy = c.y + Math.sin(animTime + c.phase)*18;
+      let cy = c.y + Math.sin(animTime + c.phase)*10;
       
-      let width = Math.abs(Math.cos(animTime*2 + c.phase)) * 30;
+      let width = Math.abs(Math.cos(animTime*2 + c.phase)) * 26;
       ctx.fillStyle = '#FFD700';
-      ctx.beginPath(); ctx.ellipse(cx, cy, Math.max(5, width/2), 16, 0, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(cx, cy, Math.max(5, width/2), 14, 0, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = '#fef08a';
-      ctx.beginPath(); ctx.ellipse(cx, cy, Math.max(3, width/4), 10, 0, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(cx, cy, Math.max(3, width/4), 8, 0, 0, Math.PI*2); ctx.fill();
   });
 
   // NPCs
@@ -1293,7 +1230,7 @@ function render() {
         let tagY = nY + bob - 35;
         ctx.fillStyle = 'rgba(15,23,42,0.95)';
         ctx.fillRect(nx - 65, tagY - 24, 130, 28);
-        drawPixelText(ctx, 'A: ЯРИХ', nx - 48, tagY - 4, npc.color || '#FFD700', 1.8);
+        drawPixelText(ctx, '💬 ЯРИХ', nx - 48, tagY - 4, npc.color || '#FFD700', 1.8);
         
         let ay = tagY - 40 + Math.sin(t*0.01)*10;
         ctx.fillStyle = '#FFD700';
@@ -1301,38 +1238,36 @@ function render() {
     }
   });
 
-  // PLAYER
   updatePlayer();
   const pScreenX = plr.wx - camX;
   
   const isWalking = inp.left || inp.right;
   let idleBob = isWalking ? 0 : Math.sin(t * 0.004) * 5;
-  const pY = FY - plr.sprH + idleBob;
+  const pY = FY - plr.sprH + idleBob + plr.wy; // Apply jump height
 
+  // Shadow scales based on jump height
   let shadowWidth = isWalking ? 26 : 30 + Math.sin(t * 0.004) * 3;
+  shadowWidth = Math.max(10, shadowWidth + plr.wy * 0.15); 
   ctx.fillStyle = 'rgba(0,0,0,0.6)';
   ctx.beginPath(); ctx.ellipse(pScreenX, FY - 8, shadowWidth, 10, 0, 0, Math.PI * 2); ctx.fill();
 
-  if (isWalking) {
+  if (isWalking && plr.grounded) {
       plr.fTimer++;
       if (plr.fTimer > 6) { plr.fTimer = 0; plr.frame = (plr.frame + 1) % 4; }
       if (plr.fTimer === 0 && Math.random() < 0.6) addParticle(plr.wx, FY, '#94a3b8', 'dust');
-  } else {
+  } else if (!isWalking) {
       plr.frame = 0;
   }
   const frames = [SPR_PLAYER_IDLE, SPR_PLAYER_W1, SPR_PLAYER_W2, SPR_PLAYER_W1];
-  const curFrame = isWalking ? frames[plr.frame] : SPR_PLAYER_IDLE;
+  const curFrame = (!plr.grounded) ? SPR_PLAYER_W1 : (isWalking ? frames[plr.frame] : SPR_PLAYER_IDLE);
   drawSprite(ctx, curFrame, pScreenX - plr.sprW / 2, pY, getPlayerPal(GS.av), plr.facing < 0);
 
-  // Particles
   drawParticles(ctx, camX);
 
-  // HUD Minimap
   if (GS.phase === 'playing' || GS.phase === 'dialog') {
       const mmW = 180, mmH = 20, mmX = W - mmW - 35, mmY = 110;
       ctx.fillStyle = 'rgba(15,23,42,0.9)'; ctx.fillRect(mmX - 8, mmY - 8, mmW + 16, mmH + 16);
-      ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.35)`;
-      ctx.fillRect(mmX, mmY, mmW, mmH);
+      ctx.fillStyle = `rgba(${lv.accentCol[0]},${lv.accentCol[1]},${lv.accentCol[2]},0.35)`; ctx.fillRect(mmX, mmY, mmW, mmH);
       const mmPx = mmX + Math.max(0, Math.min(1, plr.wx / lv.worldW)) * mmW;
       ctx.fillStyle = '#FFD700'; ctx.fillRect(mmPx - 5, mmY - 5, 10, mmH + 10);
       const mmDx = mmX + (lv.door.wx / lv.worldW) * mmW;
@@ -1351,13 +1286,32 @@ function updatePlayer() {
   if (inp.right) { plr.wx += plr.spd; plr.facing = 1; }
   plr.wx = Math.max(50, Math.min(lv.worldW - 50, plr.wx));
 
+  // Jump Physics
+  if (inp.up && plr.grounded) {
+      plr.vy = -16; // Jump strength
+      plr.grounded = false;
+      addParticle(plr.wx, getFloorY(), '#94a3b8', 'dust');
+  }
+  
+  plr.vy += 0.8; // Gravity
+  plr.wy += plr.vy;
+  
+  if (plr.wy >= 0) {
+      plr.wy = 0;
+      plr.vy = 0;
+      plr.grounded = true;
+  }
+
+  // Coin Collection (Now considers height / jumping)
   actCoins.forEach(c => {
-      if(!c.collected && Math.abs(plr.wx - c.x) < 55) {
+      let pCenterY = (getFloorY() + plr.wy - plr.sprH/2);
+      let dist = Math.hypot(plr.wx - c.x, pCenterY - c.y);
+      if(!c.collected && dist < 65) {
           c.collected = true;
           addParticle(c.x, c.y, '#FFD700', 'burst');
-          addFloatingText(c.x, c.y - 35, '+10', '#FFD700');
+          earnMoney(1500, '', c.x, c.y - 20); // Coins give 1500
           earnPts(10, ''); 
-          triggerShake(10);
+          triggerShake(8);
       }
   });
 
@@ -1365,7 +1319,6 @@ function updatePlayer() {
   const sx = plr.wx - targetCamX;
   if (sx < dL) targetCamX = Math.max(0, plr.wx - dL);
   else if (sx > dR) targetCamX = Math.min(lv.worldW - W, plr.wx - dR);
-  
   camX += (targetCamX - camX) * 0.12; 
 
   if (Math.abs(plr.wx - lv.door.wx) < 60) triggerDoor();
@@ -1412,7 +1365,7 @@ let dlgQueue = [], dlgIdx = 0, dlgCb = null, dlgNPC = null;
 function startDialog(msgs, npc, cb) {
   GS.phase = 'dialog';
   dlgQueue = msgs; dlgIdx = 0; dlgCb = cb; dlgNPC = npc;
-  inp.left = false; inp.right = false; 
+  inp.left = false; inp.right = false; inp.up = false;
   renderDlgStep();
 }
 
@@ -1467,18 +1420,21 @@ function startQuiz(quiz) {
     btn.onclick = () => {
       if (answered) return; answered = true;
       btn.className = 'dlg-choice ' + (c.ok ? 'ok' : 'ng');
-      if(c.ok) triggerShake(15); else triggerShake(10);
+      if(c.ok) {
+          triggerShake(15);
+          if(quiz.rwMoney) earnMoney(quiz.rwMoney, 'ШАГНАЛ');
+      } else triggerShake(10);
       earnPts(c.ok ? quiz.rw : Math.floor(quiz.rw * 0.3), c.ok ? 'ЗӨВ ХАРИУЛТ' : 'ХАРИУЛТ');
       ca.innerHTML = '';
       
       const fb = document.createElement('div');
-      fb.style.cssText = `padding:22px;font-size:13px;line-height:1.8;color:${c.ok?'#50fa7b':'#ff5555'}; text-shadow: 1px 1px 0 #000;`;
+      fb.style.cssText = `padding:22px;font-size:12px;line-height:1.8;color:${c.ok?'#50fa7b':'#ff5555'}; text-shadow: 1px 1px 0 #000;`;
       fb.textContent = c.ok ? quiz.gf : quiz.bf;
       ca.appendChild(fb);
       
       if (quiz.info) {
         const inf = document.createElement('div');
-        inf.style.cssText = 'padding:18px 22px;font-size:11px;color:#93c5fd;line-height:1.8;border-top:2px dashed #475569; background:rgba(0,0,0,0.5);';
+        inf.style.cssText = 'padding:18px 22px;font-size:10px;color:#93c5fd;line-height:1.8;border-top:2px dashed #475569; background:rgba(0,0,0,0.5);';
         inf.textContent = quiz.info;
         ca.appendChild(inf);
       }
@@ -1502,6 +1458,7 @@ const MG_DEFS = {
   currency: {title:'★ ВАЛЮТ АРИЛЖАА',   sub:'ТӨГРӨГӨӨ ЕВРО БОЛГО'},
   invest:   {title:'★ ХӨРӨНГӨ ОРУУЛАЛТ',sub:'ЭРСДЭЛ, ӨГӨӨЖИЙГ СОНГО'},
   loan:     {title:'★ ЗЭЭЛИЙН ТООЦОО',  sub:'САРЫН ТӨЛБӨРӨӨ ТООЦ'},
+  work:     {title:'★ ЦАГИЙН АЖИЛ',     sub:'10 СЕКУНДЭД ХУРДАН ДАРЖ МӨНГӨ ОЛ!'},
 };
 
 function openMG(id) {
@@ -1510,13 +1467,13 @@ function openMG(id) {
   document.getElementById('mg-sub').textContent = def.sub;
   const body = document.getElementById('mg-body');
   body.innerHTML = '';
-  GS.phase = 'mg'; inp.left=false; inp.right=false;
+  GS.phase = 'mg'; inp.left=false; inp.right=false; inp.up=false;
   
   const renders = {
     budget: renderMGBudget, shopping: renderMGShopping,
     gyalsbank: renderMGGylsBank, phishing: renderMGPhishing,
     compare: renderMGCompare, currency: renderMGCurrency,
-    invest: renderMGInvest, loan: renderMGLoan,
+    invest: renderMGInvest, loan: renderMGLoan, work: renderMGWork
   };
   if (renders[id]) renders[id](body);
   document.getElementById('mg-sheet').classList.add('open');
@@ -1589,9 +1546,11 @@ function renderMGShopping(el) {
     document.getElementById('sh-list').appendChild(b);
   });
   window.shPay=()=>{
-    if(paid || sel.size===0) return; paid=true;
+    if(paid || sel.size===0) return; 
     let t=0; sel.forEach(i=>t+=items[i].p);
-    GS.balance-=t; updateHUD(); earnPts(30,'КАРТААР ТООЦОО'); triggerShake(10);
+    if(t > GS.balance) { toast('ҮЛДЭГДЭЛ ХҮРЭЛЦЭХГҮЙ!'); triggerShake(15); return; }
+    paid=true;
+    earnMoney(-t, ''); earnPts(30,'КАРТААР ТООЦОО'); triggerShake(10);
     document.getElementById('sh-res').className='px-result ok';
     document.getElementById('sh-res').textContent=`✓ ₮${fmt(t)} ТООЦОО ХИЙЛЭЭ!`;
     setTimeout(closeMG,2000);
@@ -1615,14 +1574,14 @@ function renderMGGylsBank(el) {
     `;
     let clicks=0;
     window.payGbElec = (btn) => {
-        btn.disabled = true;
-        GS.balance -= 45000; updateHUD();
+        if(GS.balance < 45000) { toast('ҮЛДЭГДЭЛ ХҮРЭЛЦЭХГҮЙ!'); triggerShake(15); return; }
+        btn.disabled = true; earnMoney(-45000, '');
         document.getElementById('gb-bal-disp').textContent = '₮' + fmt(GS.balance);
         earnPts(20,'ЦАХИЛГААН'); triggerShake(8); btn.textContent='✓ ТӨЛСӨН'; checkGbDone();
     };
     window.payGbTransfer = (btn) => {
-        btn.disabled = true;
-        GS.balance -= 50000; updateHUD();
+        if(GS.balance < 50000) { toast('ҮЛДЭГДЭЛ ХҮРЭЛЦЭХГҮЙ!'); triggerShake(15); return; }
+        btn.disabled = true; earnMoney(-50000, '');
         document.getElementById('gb-bal-disp').textContent = '₮' + fmt(GS.balance);
         earnPts(20,'ШИЛЖҮҮЛЭГ'); triggerShake(8); btn.textContent='✓ ШИЛЖСЭН'; checkGbDone();
     };
@@ -1649,7 +1608,7 @@ function renderMGPhishing(el) {
   let done=false;
   window.phAns=(isOk)=>{
       if(done)return; done=true; triggerShake(isOk?10:25);
-      if(isOk) earnPts(50,'ФИШИНГ ТАНИЛАА');
+      if(isOk) { earnPts(50,'ФИШИНГ ТАНИЛАА'); earnMoney(10000, 'АЮУЛГҮЙ БАЙДАЛ'); }
       const res=document.getElementById('ph-res'); res.className='px-result '+(isOk?'ok':'ng');
       res.textContent=isOk?'✓ ЗӨВ! ЭНЭ БОЛ ЗАЛИЛАН!':'⚠ БУРУУ! ТА ХАКЕРТ МЭДЭЭЛЛЭЭ АЛДЛАА!';
       setTimeout(closeMG,2500);
@@ -1686,7 +1645,7 @@ function renderMGCurrency(el) {
       <div style="font-size:22px; margin-bottom:16px">🇪🇺 1 EUR = <span style="color:#FFD700">₮${fmt(rate)}</span></div>
       <div style="font-size:11px; color:#94a3b8">ШИМТГЭЛ: 1.5% | ХӨЛС: ₮5,000</div>
     </div>
-    <input class="px-input" type="number" id="eu-in" value="1000" min="1" oninput="calcEU()">
+    <input class="px-input" type="number" id="eu-in" value="100" min="1" oninput="calcEU()">
     <div class="px-card" id="eu-calc" style="margin-top:16px"></div>
     <button class="px-btn gold" id="eu-btn" onclick="doEU()">💱 АРИЛЖААЛАХ</button><div id="eu-res"></div>
   `;
@@ -1701,8 +1660,7 @@ function renderMGCurrency(el) {
     const t = Math.round(e*rate*1.015+5000);
     if(t > GS.balance) { toast('ҮЛДЭГДЭЛ ХҮРЭЛЦЭХГҮЙ!'); triggerShake(15); return; }
     done=true; 
-    GS.balance -= t; updateHUD();
-    earnPts(40,'ВАЛЮТ'); triggerShake(12);
+    earnMoney(-t, ''); earnPts(40,'ВАЛЮТ'); triggerShake(12);
     document.getElementById('eu-res').className='px-result ok'; document.getElementById('eu-res').textContent=`✓ АМЖИЛТТАЙ!`;
     setTimeout(closeMG,2000);
   };
@@ -1721,6 +1679,7 @@ function renderMGInvest(el) {
     window.invAns=(isOk, r)=>{
         if(done)return; done=true; triggerShake(isOk?12:25);
         earnPts(isOk?40:20,'ХӨРӨНГӨ ОРУУЛАЛТ');
+        if(isOk) earnMoney(25000, 'ӨГӨӨЖ');
         document.getElementById('inv-res').className='px-result '+(isOk?'ok':'ng');
         document.getElementById('inv-res').textContent=isOk?`★ САЙН БАЙНА! ${r}% ӨГӨӨЖТЭЙГЭЭР ӨСНӨ.`:`⚠ ӨНДӨР ЭРСДЭЛТЭЙ СОНГОЛТ ХИЙЛЭЭ.`;
         setTimeout(closeMG,2500);
@@ -1748,10 +1707,47 @@ function renderMGLoan(el) {
   };
 }
 
+// NEW WORK MINIGAME
+let wkActive = false, wkT = 10.0, wkEarn = 0, wkIv = null;
+function renderMGWork(el) {
+    wkActive = false; wkT = 10.0; wkEarn = 0;
+    el.innerHTML = `
+        <div style="text-align:center; padding: 20px 0;">
+            <div class="px-label">КОД БИЧИЖ МӨНГӨ ОЛ!</div>
+            <div style="font-size:45px; margin:30px 0; color:#50fa7b; text-shadow:0 0 15px #50fa7b55;" id="wk-time">10.0s</div>
+            <div style="font-size:24px; margin-bottom:30px; color:#FFD700" id="wk-earned">₮0</div>
+            <button class="px-btn gold" id="wk-btn" onclick="wkTap()" style="padding:40px; font-size:20px; border-width:5px; border-radius:20px;">⌨ ТАЙП ХИЙХ!</button>
+        </div>
+    `;
+    window.wkTap = () => {
+        if(!wkActive && wkT > 0) {
+            wkActive = true;
+            wkIv = setInterval(() => {
+                wkT -= 0.1;
+                if(wkT <= 0) {
+                    wkT = 0; wkActive = false; clearInterval(wkIv);
+                    document.getElementById('wk-time').textContent = '0.0s';
+                    document.getElementById('wk-btn').disabled = true;
+                    earnMoney(wkEarn, ''); triggerShake(15); earnPts(30, 'АЖИЛ');
+                    setTimeout(closeMG, 2500);
+                } else {
+                    document.getElementById('wk-time').textContent = wkT.toFixed(1) + 's';
+                }
+            }, 100);
+        }
+        if(wkActive) {
+            wkEarn += 2000;
+            document.getElementById('wk-earned').textContent = `₮${fmt(wkEarn)}`;
+            triggerShake(4);
+            addParticle(W/2 + (Math.random()-0.5)*100, H/2, '#FFD700', 'spark');
+        }
+    };
+}
+
 function doLevelComplete() {
   if (GS.phase === 'lc') return;
   GS.done.add(GS.lvl); GS.phase = 'lc';
-  inp.left=false; inp.right=false;
+  inp.left=false; inp.right=false; inp.up=false;
   
   const lv = LEVELS[GS.lvl];
   document.getElementById('lc-em').textContent = lv.emoji;
@@ -1762,7 +1758,7 @@ function doLevelComplete() {
   const targetScore = GS.pts;
   const ptsEl = document.getElementById('lc-pts');
   
-  const lessons = ['ХАРИЛЦАХ ДАНС + ДЕБИТ КАРТ','МОБАЙЛ БАНК + КИБЕР АЮУЛГҮЙ БАЙДАЛ','ОЛОН УЛС ГҮЙЛГЭЭ + ФИНТЕК','ХӨРӨНГӨ ОРУУЛАЛТ + ЗЭЭЛ'];
+  const lessons = ['ХАРИЛЦАХ/ДЕБИТ/КРЕДИТ','МОБАЙЛ БАНК/ФИШИНГ ХАМГААЛАЛТ','ОЛОН УЛС/ФИНТЕК АПП','ХӨРӨНГӨ ОРУУЛАЛТ/СОЛОНГОРОУУЛАЛТ'];
   document.getElementById('lc-box').innerHTML = `<div style="font-size:13px;color:#6495ED;margin-bottom:18px; border-bottom:2px solid #334155; padding-bottom:14px">★ СУРАЛЦСАН:</div>` + lessons.slice(0, lv.id).map(l => `<div class="lc-item"><span style="color:#50fa7b; font-size:15px">✓</span><span>${l}</span></div>`).join('');
   
   const nb = document.getElementById('lc-next');
@@ -1784,7 +1780,7 @@ function showFinalComplete() {
   document.getElementById('lc-h').textContent = 'БАЯР ХҮРГЭЕ!';
   document.getElementById('lc-s').textContent = 'САНХҮҮГИЙН МАСТЕР БОЛЛОО!';
   document.getElementById('lc-pts').textContent = GS.pts;
-  const rank = GS.pts >= 400 ? '★★★ МАСТЕР' : GS.pts >= 250 ? '★★ МЭРГЭЖИЛТЭН' : '★ СУРАЛЦАГЧ';
+  const rank = GS.pts >= 500 ? '★★★ МАСТЕР' : GS.pts >= 350 ? '★★ МЭРГЭЖИЛТЭН' : '★ СУРАЛЦАГЧ';
   document.getElementById('lc-box').innerHTML = `<div style="font-size:18px;color:#FFD700;margin-bottom:18px;text-align:center;animation:pulse 1.5s infinite">${rank}</div>`;
   document.getElementById('lc-next').textContent = '★ ДАХИН ТОГЛОХ';
   document.getElementById('lc-next').onclick = restartGame;
@@ -1804,7 +1800,7 @@ window.goNext = function() {
 
 function loadLevel(idx) {
   GS.lvl = idx; GS.phase = 'playing';
-  plr.wx = 150; camX = 0; targetCamX = 0;
+  plr.wx = 150; plr.wy = 0; plr.vy = 0; camX = 0; targetCamX = 0;
   spawnLevelCoins(LEVELS[idx]);
   particles = [];
   document.getElementById('lc').style.display = 'none';
@@ -1869,7 +1865,6 @@ window.selAv = function(i) {
 function requestFullScreen() {
   const doc = window.document.documentElement;
   const reqFn = doc.requestFullscreen || doc.mozRequestFullScreen || doc.webkitRequestFullScreen || doc.msRequestFullscreen;
-  
   const isFull = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
   
   if (reqFn && !isFull) {
@@ -1882,16 +1877,14 @@ function requestFullScreen() {
       toast('⚠️ Хөтөч бүтэн дэлгэцийг хориглосон байна.');
     });
   } else if (!reqFn) {
-      // iPhone / iOS Safari гэх мэт Fullscreen дэмждэггүй хөтөч дээр
       toast('📱 iPhone: "Add to Home Screen" хийж бүтэн дэлгэцээр тоглоно уу.');
   }
 }
 
 window.toggleFullScreen = function() {
   const isFull = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
-  if (!isFull) {
-    requestFullScreen();
-  } else {
+  if (!isFull) requestFullScreen();
+  else {
     const exitFn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
     if (exitFn) exitFn.call(document);
   }
@@ -1903,9 +1896,7 @@ window.startGame = function() {
   document.getElementById('title').style.display = 'none';
   document.getElementById('ctrl').style.display = 'flex';
   document.getElementById('hud').style.display = 'flex';
-  
   setTimeout(()=> document.getElementById('hud').classList.add('visible'), 100);
-  
   loadLevel(0);
 };
 
@@ -1920,22 +1911,27 @@ dpL.addEventListener('mouseup', e => { e.preventDefault(); inp.left = false; dpL
 dpR.addEventListener('mousedown', e => { e.preventDefault(); inp.right = true; dpR.classList.add('on'); });
 dpR.addEventListener('mouseup', e => { e.preventDefault(); inp.right = false; dpR.classList.remove('on'); });
 
-document.getElementById('abtn-a').addEventListener('touchstart', e=>{e.preventDefault(); interact();});
-document.getElementById('abtn-a').addEventListener('mousedown', e=>{e.preventDefault(); interact();});
-document.getElementById('abtn-b').addEventListener('click', () => {
-  if (GS.phase === 'playing') { renderMap(); document.getElementById('map-screen').style.display = 'flex'; GS.phase = 'map'; } 
-  else if (GS.phase === 'map') { document.getElementById('map-screen').style.display = 'none'; GS.phase = 'playing'; }
-});
+const btnJ = document.getElementById('abtn-jump');
+const btnT = document.getElementById('abtn-talk');
+btnJ.addEventListener('touchstart', e=>{e.preventDefault(); inp.up=true; btnJ.classList.add('on');}, {passive:false});
+btnJ.addEventListener('touchend', e=>{e.preventDefault(); inp.up=false; btnJ.classList.remove('on');}, {passive:false});
+btnJ.addEventListener('mousedown', e=>{e.preventDefault(); inp.up=true; btnJ.classList.add('on');});
+btnJ.addEventListener('mouseup', e=>{e.preventDefault(); inp.up=false; btnJ.classList.remove('on');});
+
+btnT.addEventListener('touchstart', e=>{e.preventDefault(); interact();}, {passive:false});
+btnT.addEventListener('mousedown', e=>{e.preventDefault(); interact();});
 
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft' || e.key === 'a') inp.left = true;
   if (e.key === 'ArrowRight' || e.key === 'd') inp.right = true;
-  if (e.key === ' ' || e.key === 'Enter') interact();
-  if (e.key === 'm' || e.key === 'M') document.getElementById('abtn-b').click();
+  if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') inp.up = true;
+  if (e.key === 'Enter' || e.key === 'e') interact();
+  if (e.key === 'm' || e.key === 'M') goMap();
 });
 document.addEventListener('keyup', e => {
   if (e.key === 'ArrowLeft' || e.key === 'a') inp.left = false;
   if (e.key === 'ArrowRight' || e.key === 'd') inp.right = false;
+  if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') inp.up = false;
 });
 
 document.getElementById('dlg').addEventListener('click', e => { if (e.target.tagName !== 'BUTTON') advDlg(); });
@@ -1945,11 +1941,16 @@ function fmt(n) { return new Intl.NumberFormat('mn-MN').format(n); }
 function earnPts(n, label) { 
     GS.pts += n; updateHUD(); 
     if(label) toast(`+${n} ★ ${label}`); 
-    
     const ptsEl = document.getElementById('h-pts');
-    ptsEl.style.transform = 'scale(1.8)';
-    ptsEl.style.color = '#fff';
+    ptsEl.style.transform = 'scale(1.8)'; ptsEl.style.color = '#fff';
     setTimeout(()=> { ptsEl.style.transform = 'scale(1)'; ptsEl.style.color = '#FFD700'; }, 200);
+}
+function earnMoney(amt, label, px, py) {
+    GS.balance += amt; updateHUD();
+    let popX = px || plr.wx;
+    let popY = py || (getFloorY() + plr.wy - 60);
+    addFloatingText(popX, popY, `${amt>0?'+':''}₮${fmt(Math.abs(amt))}`, amt>0?'#50fa7b':'#ff5555');
+    if(label) toast(`${amt>0?'+':''}₮${fmt(Math.abs(amt))} ${label}`);
 }
 function updateHUD() {
   document.getElementById('h-bal').textContent = `₮${fmt(GS.balance)}`;
