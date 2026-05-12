@@ -1813,7 +1813,11 @@ window.selAv = function(i) {
 function requestFullScreen() {
   const doc = window.document.documentElement;
   const reqFn = doc.requestFullscreen || doc.mozRequestFullScreen || doc.webkitRequestFullScreen || doc.msRequestFullscreen;
-  if (reqFn) {
+  
+  // Зөвхөн бүтэн дэлгэц болоогүй үед л дуудна
+  const isFull = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+  
+  if (reqFn && !isFull) {
     reqFn.call(doc).then(() => {
       // Дэлгэц эргэхийг хэвтээ (landscape) горимд түгжих гэж оролдох
       if (screen.orientation && screen.orientation.lock) {
@@ -1822,6 +1826,15 @@ function requestFullScreen() {
     }).catch(err => console.log('Fullscreen failed:', err));
   }
 }
+
+// Дэлгэц хэвтээ үед дэлгэцэнд хаана ч хүрсэн автоматаар Fullscreen рүү шилжих
+function autoFullscreenOnInteraction() {
+    if (window.innerWidth > window.innerHeight) {
+        requestFullScreen();
+    }
+}
+document.addEventListener('touchstart', autoFullscreenOnInteraction, { passive: true });
+document.addEventListener('mousedown', autoFullscreenOnInteraction, { passive: true });
 
 window.startGame = function() {
   requestFullScreen();
