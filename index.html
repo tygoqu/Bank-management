@@ -4,11 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Bank Quest – Slate Edition</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{width:100%;height:100%;overflow:hidden;background:#1e293b;font-family:'Press Start 2P',monospace;}
+html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none;background:#1e293b;font-family:'Press Start 2P',monospace;}
 
 /* ── CRT OVERLAY (ЦАЙВАР БОЛГАСАН) ── */
 body::after {
@@ -804,6 +806,7 @@ function resize() {
   ctx.mozImageSmoothingEnabled = false;
   ctx.webkitImageSmoothingEnabled = false;
   ctx.msImageSmoothingEnabled = false;
+  window.scrollTo(0, 0);
 }
 resize();
 window.addEventListener('resize', resize);
