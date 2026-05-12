@@ -303,6 +303,18 @@ body::after {
     100%{opacity:0;transform:translateY(-30px) scale(0.9)}
 }
 
+/* FULLSCREEN BUTTON */
+#fs-btn {
+  position: fixed; top: 15px; right: 15px; z-index: 9999;
+  background: rgba(15, 23, 42, 0.8); border: 3px solid #FFD700; color: #FFD700;
+  width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border-radius: 12px; transition: all 0.1s;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  backdrop-filter: blur(5px);
+}
+#fs-btn:active { transform: scale(0.9); background: #FFD700; color: #000; }
+#fs-btn svg { width: 24px; height: 24px; stroke-width: 2.5; }
+
 /* ── ROTATE DEVICE PROMPT ── */
 #rotate-prompt {
   position: fixed; inset: 0; z-index: 10000;
@@ -372,6 +384,9 @@ body::after {
 </style>
 </head>
 <body>
+<div id="fs-btn" onclick="toggleFullScreen()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+</div>
 <div id="rotate-prompt">
   <div class="rot-icon">📱</div>
   <div class="rot-text">ТОГЛОХЫН ТУЛД<br>УТСАА ХЭВТЭЭ БОЛГОНО УУ</div>
@@ -1838,6 +1853,16 @@ function requestFullScreen() {
     }).catch(err => console.log('Fullscreen failed:', err));
   }
 }
+
+window.toggleFullScreen = function() {
+  const isFull = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+  if (!isFull) {
+    requestFullScreen();
+  } else {
+    const exitFn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+    if (exitFn) exitFn.call(document);
+  }
+};
 
 window.startGame = function() {
   requestFullScreen();
