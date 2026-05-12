@@ -212,12 +212,12 @@ body::after {
 #title{
   position:fixed;inset:0;z-index:100;
   background:#1e293b;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:25px;
-  overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:40px 25px;
+  overflow-y:auto;
 }
 #title-bg { position: absolute; inset: 0; z-index: 0; }
-.t-content{position:relative;z-index:1;text-align:center;width:100%;max-width:550px; background: rgba(15,23,42,0.8); padding: 45px; border: 4px solid #334155; border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 20px 50px rgba(0,0,0,0.5);}
+.t-content{margin:auto; position:relative;z-index:1;text-align:center;width:100%;max-width:550px; background: rgba(15,23,42,0.8); padding: 45px; border: 4px solid #334155; border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 20px 50px rgba(0,0,0,0.5);}
 .t-bank{font-size:15px;color:#6495ED;letter-spacing:5px;margin-bottom:26px; animation: float 3s ease-in-out infinite;}
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 .t-logo{font-size:clamp(45px,14vw,80px);color:#fff;line-height:1.1;margin-bottom:18px;text-shadow:0 10px 0 #0f172a, 0 0 45px #6495ED88;}
@@ -316,6 +316,18 @@ body::after {
 
 /* ── MOBILE RESPONSIVENESS ── */
 #game-container, #ctrl { touch-action: none; user-select: none; -webkit-user-select: none; }
+
+@media (max-height: 600px) {
+  #title { padding: 15px; }
+  .t-content { padding: 20px; max-width: 500px; }
+  .t-bank { margin-bottom: 8px; font-size: 11px; }
+  .t-logo { font-size: 32px; margin-bottom: 8px; line-height: 1.1; }
+  .t-sub { margin-bottom: 12px; font-size: 11px; line-height: 1.5; }
+  .px-label { margin-bottom: 8px; }
+  .av-row { margin-bottom: 10px; gap: 15px; }
+  .av-opt { width: 50px; height: 50px; border-radius: 10px; }
+  .t-btn { margin-top: 10px; padding: 14px 24px; font-size: 14px; }
+}
 
 @media (max-width: 768px) and (orientation: portrait) {
     #rotate-prompt { display: flex; }
@@ -1826,15 +1838,6 @@ function requestFullScreen() {
     }).catch(err => console.log('Fullscreen failed:', err));
   }
 }
-
-// Дэлгэц хэвтээ үед дэлгэцэнд хаана ч хүрсэн автоматаар Fullscreen рүү шилжих
-function autoFullscreenOnInteraction() {
-    if (window.innerWidth > window.innerHeight) {
-        requestFullScreen();
-    }
-}
-document.addEventListener('touchstart', autoFullscreenOnInteraction, { passive: true });
-document.addEventListener('mousedown', autoFullscreenOnInteraction, { passive: true });
 
 window.startGame = function() {
   requestFullScreen();
