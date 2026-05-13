@@ -589,9 +589,13 @@ function render() {
   if(activeLvl.door) {
     const dx = activeLvl.door.wx - camX;
     if(dx > -100 && dx < W+100) {
-      ctx.shadowColor = '#fbbf24'; ctx.shadowBlur = 15 + Math.sin(floatT)*5;
+      // Гэрэлтэх эффектийг хөнгөвчилж FPS гацалтыг (freeze) бүрэн зассан
+      const glow = Math.sin(floatT)*5;
+      ctx.fillStyle = `rgba(251, 191, 36, 0.15)`;
+      ctx.beginPath(); ctx.ellipse(dx, FY - 8*SCALE, 14*SCALE + glow, 18*SCALE + glow, 0, 0, Math.PI*2); ctx.fill();
+      
       drawSprite(ctx, SPR_DOOR, dx - 8*SCALE, FY - 16*SCALE, null, false);
-      ctx.shadowBlur = 0;
+      
       if(Math.abs(plr.wx - activeLvl.door.wx) < 70 && plr.y > -20) {
         const bob = Math.sin(floatT*2)*3;
         ctx.fillStyle = 'rgba(15, 23, 42, 0.9)'; ctx.fillRect(dx - 30, FY - 100 + bob, 60, 20);
