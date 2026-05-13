@@ -1,377 +1,1008 @@
-<!-- ... existing code ... -->
-@media (max-width: 768px) {
-  .map-grid { grid-template-columns: 1fr; gap: 15px; }
-  .t-logo { font-size: clamp(30px, 10vw, 45px); }
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Bank Quest – Slate Edition</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+:root {
+  --bg-dark: #0f172a; --bg-mid: #1e293b; --bg-light: #334155;
+  --accent: #3b82f6; --gold: #fbbf24; --green: #4ade80; --red: #f87171;
+  --text: #f8fafc; --text-dim: #94a3b8;
 }
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: none; }
+html, body { width: 100%; height: 100dvh; overflow: hidden; background: var(--bg-dark); font-family: 'Press Start 2P', monospace; overscroll-behavior: none; }
+#c { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
 
-#leaderboard {
-  position:fixed;inset:0;z-index:150;
-  background:rgba(15, 23, 42, 0.98);
-  display:none;flex-direction:column;align-items:center;padding:40px 20px;
-  overflow-y:auto;backdrop-filter:blur(15px);
+/* ── UI OVERLAY ── */
+#ui { position: fixed; inset: 0; pointer-events: none; z-index: 10; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+
+#top-bar { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: flex-start; z-index: 20; pointer-events: none; }
+.hud-box { background: rgba(15, 23, 42, 0.85); border: 2px solid var(--accent); border-radius: 8px; padding: 8px 12px; pointer-events: all; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+.hud-row { display: flex; align-items: center; gap: 8px; font-size: 10px; color: var(--text-dim); }
+.hud-v { color: var(--gold); transition: color 0.2s; }
+.sys-btns { display: flex; gap: 8px; pointer-events: all; }
+.sys-btn { width: 40px; height: 40px; background: rgba(15, 23, 42, 0.85); border: 2px solid var(--text-dim); border-radius: 8px; color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; backdrop-filter: blur(4px); transition: 0.1s; }
+.sys-btn:active { background: var(--bg-light); border-color: var(--text); transform: scale(0.95); }
+
+#dlg { position: absolute; bottom: 10px; left: 10px; right: 10px; background: rgba(15, 23, 42, 0.95); border: 3px solid var(--gold); border-radius: 12px; padding: 0; transform: translateY(150%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 50; pointer-events: all; display: flex; flex-direction: column; max-height: calc(100dvh - 120px); box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
+#dlg.open { transform: translateY(0); }
+#dlg-inner { display: flex; gap: 12px; padding: 16px; border-bottom: 2px solid var(--bg-light); align-items: flex-start; }
+#dlg-face { width: 56px; height: 56px; flex-shrink: 0; border: 2px solid var(--gold); background: var(--bg-dark); border-radius: 8px; image-rendering: pixelated; }
+#dlg-name { font-size: 10px; color: var(--gold); margin-bottom: 8px; text-shadow: 1px 1px 0 #000; }
+#dlg-text { font-size: 10px; color: var(--text); line-height: 1.6; flex: 1; }
+#dlg-choices { display: flex; flex-direction: column; overflow-y: auto; max-height: 40dvh; }
+.dlg-choice { background: transparent; border: none; border-bottom: 1px solid var(--bg-light); padding: 16px; color: var(--text-dim); font-family: inherit; font-size: 9px; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.1s; line-height: 1.5; }
+.dlg-choice:last-child { border-bottom: none; }
+.dlg-choice:active, .dlg-choice:hover { background: rgba(59, 130, 246, 0.2); color: var(--gold); padding-left: 20px; }
+.dlg-choice.ok { color: var(--green); } .dlg-choice.ng { color: var(--red); }
+#dlg-cont { font-size: 8px; color: var(--text-dim); padding: 10px; text-align: center; animation: blink 1s infinite; cursor: pointer; background: var(--bg-mid); border-radius: 0 0 8px 8px; }
+@keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.5; } }
+
+#ctrl { position: absolute; bottom: 10px; left: 10px; right: 10px; display: none; justify-content: space-between; align-items: flex-end; pointer-events: none; z-index: 40; padding-bottom: env(safe-area-inset-bottom); }
+.dpad { display: flex; gap: 10px; pointer-events: all; }
+.dpb { width: 60px; height: 60px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; opacity: 0.8; user-select: none; transition: 0.1s; }
+.dpb.on, .dpb:active { background: rgba(255,255,255,0.3); border-color: #fff; transform: scale(0.95); opacity: 1; }
+.acts { display: flex; gap: 12px; pointer-events: all; }
+.abtn { width: 64px; height: 64px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: inherit; font-size: 8px; font-weight: bold; user-select: none; box-shadow: 0 4px 0 rgba(0,0,0,0.5); transition: 0.1s; }
+.abtn:active { transform: translateY(4px); box-shadow: 0 0 0 rgba(0,0,0,0); }
+#abtn-b { background: #3b82f6; border: 3px solid #60a5fa; color: #fff; } /* JUMP */
+#abtn-a { background: #fbbf24; border: 3px solid #fde047; color: #000; width: 72px; height: 72px; font-size: 10px; } /* ACTION */
+
+#mg-sheet { position: fixed; inset: 0; background: var(--bg-dark); z-index: 60; transform: translateY(100%); transition: transform 0.3s ease-out; overflow-y: auto; pointer-events: all; display: flex; flex-direction: column; }
+#mg-sheet.open { transform: translateY(0); }
+.mg-hdr { background: var(--bg-mid); border-bottom: 2px solid var(--accent); padding: 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 2; }
+.mg-title { font-size: 12px; color: var(--gold); margin-bottom: 6px; }
+.mg-sub { font-size: 8px; color: var(--text-dim); }
+.mg-close { background: var(--bg-dark); border: 2px solid var(--text-dim); color: var(--text); padding: 10px 14px; font-family: inherit; font-size: 8px; border-radius: 6px; cursor: pointer; }
+.mg-close:active { background: var(--text-dim); color: #000; }
+.mg-body { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 16px; max-width: 600px; margin: 0 auto; width: 100%; }
+
+.card { background: var(--bg-mid); border: 2px solid var(--bg-light); border-radius: 8px; padding: 16px; }
+.lbl { font-size: 9px; color: var(--accent); margin-bottom: 10px; display: block; line-height: 1.4; }
+.row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--bg-light); font-size: 9px; color: var(--text); }
+.row:last-child { border-bottom: none; }
+.btn { width: 100%; background: var(--accent); border: none; border-bottom: 4px solid #2563eb; color: #fff; font-family: inherit; font-size: 10px; padding: 16px; border-radius: 8px; cursor: pointer; transition: 0.1s; margin-top: 10px; }
+.btn:active { transform: translateY(4px); border-bottom-width: 0; }
+.btn.gold { background: var(--gold); border-bottom-color: #d97706; color: #000; }
+.inp { width: 100%; background: var(--bg-dark); border: 2px solid var(--bg-light); color: var(--text); font-family: inherit; font-size: 10px; padding: 12px; border-radius: 6px; margin-bottom: 10px; outline: none; text-align: center; }
+.inp:focus { border-color: var(--accent); }
+.res-box { padding: 16px; border-radius: 8px; font-size: 9px; line-height: 1.6; margin-top: 10px; border: 2px solid; display: none; }
+.res-box.ok { display: block; background: rgba(74, 222, 128, 0.1); border-color: var(--green); color: var(--green); }
+.res-box.ng { display: block; background: rgba(248, 113, 113, 0.1); border-color: var(--red); color: var(--red); }
+
+.map-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.map-cell { background: var(--bg-mid); border: 2px solid var(--bg-light); border-radius: 12px; padding: 16px; text-align: center; cursor: pointer; transition: 0.1s; }
+.map-cell.done { border-color: var(--green); background: rgba(74, 222, 128, 0.05); }
+.map-cell.lock { opacity: 0.4; filter: grayscale(1); cursor: not-allowed; }
+.map-cell:active:not(.lock) { transform: scale(0.95); }
+
+#title { position: fixed; inset: 0; background: var(--bg-dark); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; overflow-y: auto; }
+.t-logo { font-size: clamp(24px, 6vw, 48px); color: #fff; margin-bottom: 10px; text-shadow: 0 4px 15px rgba(59, 130, 246, 0.5); line-height: 1.2; }
+.t-logo span { color: var(--gold); }
+.av-row { display: flex; gap: 16px; justify-content: center; margin: 16px 0; }
+.av-opt { width: 56px; height: 56px; background: var(--bg-mid); border: 3px solid var(--bg-light); border-radius: 12px; cursor: pointer; image-rendering: pixelated; transition: 0.1s; }
+.av-opt.sel { border-color: var(--gold); background: rgba(251, 191, 36, 0.2); transform: scale(1.1); }
+#name-inp { max-width: 250px; text-align: center; font-size: 10px; }
+
+/* Leaderboard */
+.lb-row { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--bg-light); font-size: 10px; color: var(--text); }
+.lb-row.me { background: rgba(251, 191, 36, 0.15); color: var(--gold); font-weight: bold; border: 1px solid var(--gold); border-radius: 6px; }
+
+/* Responsive Adjustments */
+@media (max-height: 450px) {
+  #dlg { max-height: calc(100dvh - 80px); }
+  .dpb { width: 48px; height: 48px; font-size: 18px; }
+  .abtn { width: 50px; height: 50px; font-size: 6px; }
+  #abtn-a { width: 56px; height: 56px; font-size: 8px; }
+  .t-logo { font-size: 24px; }
+  .av-opt { width: 48px; height: 48px; }
+  #name-inp { padding: 8px; font-size: 8px; }
+  .btn { padding: 12px; font-size: 8px; }
 }
-.lb-card { background:#0f172a; border:4px solid #FFD700; border-radius:12px; width:100%; max-width:500px; padding:20px; }
-.lb-row { display:flex; justify-content:space-between; padding:16px 0; border-bottom:2px dashed #334155; font-size:12px; color:#cbd5e1; }
-.lb-row.me { color:#50fa7b; font-weight:bold; }
-.lb-row.hdr { color:#FFD700; border-bottom:4px solid #475569; font-size:14px; margin-bottom:10px; }
 </style>
 </head>
-<!-- ... existing code ... -->
-```
-
-```html:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-<div id="title">
-  <canvas id="title-bg"></canvas>
-  <div class="t-content">
-    <div class="t-bank">★ ТӨРИЙН БАНК ★</div>
-    <div class="t-logo">BANK<br><span>QUEST</span></div>
-    <div class="t-sub">САНХҮҮГИЙН АЯЛАЛ<br>SLATE EDITION</div>
-
-    <input type="text" id="p-name" class="px-input" style="text-align:center; margin-bottom:25px; font-size:14px; padding:18px;" placeholder="ТОГЛОГЧИЙН НЭР" maxlength="12">
-
-    <div class="px-label" style="color:#cbd5e1">АВАТАР СОНГОНО УУ</div>
-    <div class="av-row" id="av-row">
-<!-- ... existing code ... -->
-      <canvas class="av-opt" id="av2" data-i="2" onclick="selAv(2)"></canvas>
-      <canvas class="av-opt" id="av3" data-i="3" onclick="selAv(3)"></canvas>
+<body>
+<canvas id="c"></canvas>
+<div id="ui">
+  <!-- Top Bar -->
+  <div id="top-bar">
+    <div class="hud-box">
+      <div class="hud-row">💰 <span class="hud-v" id="h-bal">₮500,000</span></div>
+      <div class="hud-row">⭐ <span class="hud-v" id="h-pts">0</span></div>
     </div>
-    <button class="t-btn" onclick="startGame()">▶ ЭХЛЭХ</button>
-    <button class="t-btn" style="background:linear-gradient(#475569, #1e293b); border-color:#6495ED; margin-left:10px; padding:22px 30px;" onclick="showLeaderboard()">🏆 ЧАНСАА</button>
+    <div class="sys-btns">
+      <div class="sys-btn" id="btn-map" onclick="document.getElementById('map-sheet').classList.add('open');GS.phase='map';">🗺</div>
+      <div class="sys-btn" id="btn-fs" onclick="toggleFS()">⛶</div>
+    </div>
+  </div>
+
+  <!-- Dialog -->
+  <div id="dlg">
+    <div id="dlg-inner">
+      <canvas id="dlg-face"></canvas>
+      <div style="flex:1">
+        <div id="dlg-name">СИСТЕМ</div>
+        <div id="dlg-text">...</div>
+      </div>
+    </div>
+    <div id="dlg-choices"></div>
+    <div id="dlg-cont" style="display:none" onclick="advDlg()">▼ ДАРЖ ҮРГЭЛЖЛҮҮЛЭХ</div>
+  </div>
+
+  <!-- Controls -->
+  <div id="ctrl">
+    <div class="dpad">
+      <div class="dpb" id="dp-l">◀</div>
+      <div class="dpb" id="dp-r">▶</div>
+    </div>
+    <div class="acts">
+      <div class="abtn" id="abtn-b">ҮСРЭХ</div>
+      <div class="abtn" id="abtn-a">ЯРИХ</div>
+    </div>
   </div>
 </div>
 
-<div id="leaderboard">
-  <h2 style="color:#FFD700; font-size:24px; margin-bottom:25px; text-shadow:0 0 15px #FFD700aa;">🏆 ТОГЛОГЧДЫН ЧАНСАА</h2>
-  <div class="lb-card" id="lb-list"></div>
-  <button class="px-btn" style="width:auto; padding:20px 40px; margin-top:25px;" onclick="closeLeaderboard()">✕ ХААХ</button>
+<!-- Minigame Overlay -->
+<div id="mg-sheet">
+  <div class="mg-hdr">
+    <div><div class="mg-title" id="mg-title">GAME</div><div class="mg-sub" id="mg-sub">sub</div></div>
+    <div class="mg-close" id="mg-close">✕ Хаах</div>
+  </div>
+  <div class="mg-body" id="mg-body"></div>
 </div>
 
-<div id="map-screen">
-<!-- ... existing code ... -->
-```
+<!-- Map Overlay -->
+<div id="mg-sheet" class="map-sheet" id="map-sheet" style="z-index:70">
+  <div class="mg-hdr">
+    <div><div class="mg-title">ГАЗРЫН ЗУРАГ</div><div class="mg-sub">Үе сонгох</div></div>
+    <div class="mg-close" onclick="document.getElementById('map-sheet').classList.remove('open');GS.phase='playing'">✕</div>
+  </div>
+  <div class="mg-body">
+    <div class="map-grid" id="map-grid"></div>
+  </div>
+</div>
 
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-const GS = {
-  av: 0, balance: 500000, pts: 0,
-  done: new Set(), lvl: 0,
-  phase: 'title', playerName: '', activeNPC: null
-};
-
-const inp = { left: false, right: false, up: false };
-<!-- ... existing code ... -->
-```
-
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-function triggerNPC(npc) {
-  npcCooldown = Date.now() + 500;
-  addParticle(npc.wx, getFloorY() - 110, npc.color || '#FFD700', 'burst');
-
-  if (npc.completed) {
-      startDialog([{speaker: npc.name || 'СИСТЕМ', text: 'ТА ЭНЭ ДААЛГАВРЫГ ХИЙЖ ДУУСГАСАН БАЙНА. ДАХИН ХИЙХ БОЛОМЖГҮЙ.'}], npc, null);
-      return;
-  }
-
-  if (npc.trigger === 'finalEnd') { startDialog(npc.dialog, npc, () => triggerEnd()); return; }
-  if (npc.mg) { startDialog(npc.dialog, npc, () => openMG(npc.mg, npc)); return; }
-  if (npc.quiz) { startDialog(npc.dialog, npc, () => startQuiz(npc.quiz, npc)); return; }
-  startDialog(npc.dialog, npc, null);
-}
-
-function triggerEnd() {
-<!-- ... existing code ... -->
-```
-
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-function closeDlg() {
-  document.getElementById('dlg').classList.remove('open');
-  document.getElementById('dlg-choices').innerHTML = '';
-  GS.phase = 'playing';
-}
-
-function startQuiz(quiz, npc) {
-  GS.phase = 'dialog';
-  document.getElementById('dlg-name').textContent = '❓ АСУУЛТ';
-  document.getElementById('dlg-name').style.color = '#fff';
-  document.getElementById('dlg-text').textContent = quiz.q;
-  document.getElementById('dlg-cont').style.display = 'none';
-  document.getElementById('dlg').classList.add('open');
-  const ca = document.getElementById('dlg-choices');
-  ca.innerHTML = '';
-  let answered = false;
+<!-- Title Screen -->
+<div id="title">
+  <div class="t-logo">BANK<br><span>QUEST</span></div>
+  <div style="font-size:10px;color:var(--text-dim);margin-bottom:24px;line-height:1.6">САНХҮҮГИЙН АДАЛ ЯВДАЛ<br>SLATE EDITION</div>
   
-  quiz.ch.forEach(c => {
-    const btn = document.createElement('button');
-    btn.className = 'dlg-choice';
-    btn.innerHTML = `<span style="font-size:24px">${c.i}</span> <span>${c.t}</span>`;
-    btn.onclick = () => {
-      if (answered) return; answered = true;
-      if (npc) npc.completed = true; // Буцаж хариулах боломжгүй болгох
-      
-      btn.className = 'dlg-choice ' + (c.ok ? 'ok' : 'ng');
-      if(c.ok) {
-          triggerShake(15);
-          if(quiz.rwMoney) earnMoney(quiz.rwMoney, 'ШАГНАЛ');
-          earnPts(quiz.rw, 'ЗӨВ ХАРИУЛТ');
-      } else {
-          triggerShake(10);
-          const pen = Math.floor(quiz.rw * 0.5);
-          earnPts(-pen, 'БУРУУ ХАРИУЛТ');
+  <input class="inp" id="name-inp" placeholder="ТОГЛОГЧИЙН НЭР" maxlength="10" value="ТОГЛОГЧ">
+  
+  <div style="font-size:9px;color:var(--text-dim);margin-top:10px">АВАТАР СОНГОХ</div>
+  <div class="av-row">
+    <canvas class="av-opt sel" id="av0" onclick="selAv(0)"></canvas>
+    <canvas class="av-opt" id="av1" onclick="selAv(1)"></canvas>
+    <canvas class="av-opt" id="av2" onclick="selAv(2)"></canvas>
+    <canvas class="av-opt" id="av3" onclick="selAv(3)"></canvas>
+  </div>
+  
+  <button class="btn gold" style="max-width:250px" onclick="startGame()">▶ ТОГЛООМ ЭХЛЭХ</button>
+</div>
+
+<script>
+'use strict';
+const PAL = [
+  [0,0,0,0],         // 0 transparent
+  [255,205,148,255], // 1 skin
+  [80,50,20,255],    // 2 dark brown
+  [59,130,246,255],  // 3 blue (accent)
+  [30,41,59,255],    // 4 dark blue (bg-mid)
+  [15,23,42,255],    // 5 very dark blue (shoes)
+  [20,20,20,255],    // 6 black/outline
+  [248,250,252,255], // 7 white
+  [251,191,36,255],  // 8 gold
+  [74,222,128,255],  // 9 green
+  [248,113,113,255], // 10 red
+  [148,163,184,255], // 11 grey
+  [168,85,247,255]   // 12 purple
+];
+
+const SPR_PLAYER_IDLE = [
+  [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0],
+  [0,0,0,0,0,2,1,1,1,1,2,0,0,0,0,0],
+  [0,0,0,0,2,1,1,1,1,1,1,2,0,0,0,0],
+  [0,0,0,0,2,1,6,1,1,6,1,2,0,0,0,0],
+  [0,0,0,0,2,1,1,1,1,1,1,2,0,0,0,0],
+  [0,0,0,0,0,2,1,10,10,1,2,0,0,0,0,0],
+  [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0,0],
+  [0,0,0,3,3,3,3,3,3,3,3,3,3,0,0,0],
+  [0,0,3,3,3,3,3,3,3,3,3,3,3,3,0,0],
+  [0,0,3,3,3,3,3,3,3,3,3,3,3,3,0,0],
+  [0,0,0,3,3,3,3,3,3,3,3,3,3,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],
+  [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0],
+  [0,0,0,0,5,5,0,0,0,0,5,5,0,0,0,0]
+];
+const SPR_PLAYER_W1 = [
+  [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0],
+  [0,0,0,0,0,2,1,1,1,1,2,0,0,0,0,0],
+  [0,0,0,0,2,1,1,1,1,1,1,2,0,0,0,0],
+  [0,0,0,0,2,1,6,1,1,6,1,2,0,0,0,0],
+  [0,0,0,0,2,1,1,1,1,1,1,2,0,0,0,0],
+  [0,0,0,0,0,2,1,10,10,1,2,0,0,0,0,0],
+  [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0,0],
+  [0,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0],
+  [0,1,3,3,3,3,3,3,3,3,3,3,3,1,0,0],
+  [0,0,1,3,3,3,3,3,3,3,3,3,1,0,0,0],
+  [0,0,0,3,3,3,3,3,3,3,3,3,0,0,0,0],
+  [0,0,0,0,4,4,4,0,0,4,4,0,0,0,0,0],
+  [0,0,0,0,0,4,4,4,4,4,0,0,0,0,0,0],
+  [0,0,0,0,0,0,4,4,4,0,0,0,0,0,0,0],
+  [0,0,0,0,0,5,5,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,5,5,0,0,0,0,0,0,0,0,0]
+];
+const SPR_PLAYER_W2 = [
+  [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0],
+  [0,0,0,0,0,2,1,1,1,1,2,0,0,0,0,0],
+  [0,0,0,0,2,1,1,1,1,1,1,2,0,0,0,0],
+  [0,0,0,0,2,1,6,1,1,6,1,2,0,0,0,0],
+  [0,0,0,0,2,1,1,1,1,1,1,2,0,0,0,0],
+  [0,0,0,0,0,2,1,10,10,1,2,0,0,0,0,0],
+  [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0,0],
+  [0,0,3,3,3,3,3,3,3,3,3,3,3,0,0,0],
+  [0,0,1,3,3,3,3,3,3,3,3,3,1,0,0,0],
+  [0,0,0,1,3,3,3,3,3,3,3,1,0,0,0,0],
+  [0,0,0,0,3,3,3,3,3,3,3,0,0,0,0,0],
+  [0,0,0,0,4,4,0,0,0,4,4,4,0,0,0,0],
+  [0,0,0,0,4,0,0,0,4,4,4,0,0,0,0,0],
+  [0,0,0,0,0,0,0,4,4,4,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,5,5,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,5,5,0,0,0,0,0,0,0]
+];
+
+const SPR_ATM = [
+  [0,6,6,6,6,6,6,6,6,6,6,6,6,6,6,0],
+  [6,11,11,11,11,11,11,11,11,11,11,11,11,11,11,6],
+  [6,11,6,6,6,6,6,6,6,6,6,6,6,6,11,6],
+  [6,11,6,3,3,3,3,3,3,3,3,3,3,6,11,6],
+  [6,11,6,3,7,7,7,7,7,7,7,7,3,6,11,6],
+  [6,11,6,3,3,3,3,3,3,3,3,3,3,6,11,6],
+  [6,11,6,6,6,6,6,6,6,6,6,6,6,6,11,6],
+  [6,11,11,11,11,6,6,6,6,11,11,11,11,11,11,6],
+  [6,11,6,6,11,6,9,9,6,11,6,6,11,11,11,6],
+  [6,11,6,6,11,6,6,6,6,11,6,6,11,11,11,6],
+  [6,11,11,11,11,11,11,11,11,11,11,11,11,11,11,6],
+  [6,11,11,11,11,11,11,11,11,11,11,11,11,11,11,6],
+  [6,11,11,6,6,11,11,11,11,6,6,11,11,11,11,6],
+  [6,11,11,6,6,11,11,11,11,6,6,11,11,11,11,6],
+  [6,11,11,11,11,11,11,11,11,11,11,11,11,11,11,6],
+  [0,6,6,6,6,6,6,6,6,6,6,6,6,6,6,0]
+];
+
+const SPR_PLANT = [
+  [0,0,0,0,0,0,9,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,9,9,9,0,0,0,0,0,0,0,0],
+  [0,0,0,0,9,9,9,9,9,0,0,0,0,0,0,0],
+  [0,0,0,9,9,7,9,9,9,9,0,0,0,0,0,0],
+  [0,0,0,9,9,9,9,9,9,9,0,0,0,0,0,0],
+  [0,0,0,0,9,9,9,9,9,0,0,0,0,0,0,0],
+  [0,0,0,0,0,9,9,9,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,6,6,2,6,6,0,0,0,0,0,0,0],
+  [0,0,0,0,6,11,11,11,6,0,0,0,0,0,0,0],
+  [0,0,0,0,6,11,11,11,6,0,0,0,0,0,0,0],
+  [0,0,0,0,6,11,11,11,6,0,0,0,0,0,0,0],
+  [0,0,0,0,6,6,6,6,6,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+];
+
+const SPR_DOOR = [
+  [8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8],
+  [8,4,4,4,4,4,4,4,4,4,4,4,4,4,4,8],
+  [8,4,7,7,7,7,7,7,7,7,7,7,7,7,4,8],
+  [8,4,7,3,3,3,3,3,3,3,3,3,3,7,4,8],
+  [8,4,7,3,3,3,3,3,3,3,3,3,3,7,4,8],
+  [8,4,7,3,3,3,3,3,3,3,3,3,3,7,4,8],
+  [8,4,7,3,3,3,6,6,6,3,3,3,3,7,4,8],
+  [8,4,7,3,3,3,6,8,6,3,3,3,3,7,4,8],
+  [8,4,7,3,3,3,6,6,6,3,3,3,3,7,4,8],
+  [8,4,7,3,3,3,3,3,3,3,3,3,3,7,4,8],
+  [8,4,7,3,3,3,3,3,3,3,3,3,3,7,4,8],
+  [8,4,7,3,3,3,3,3,3,3,3,3,3,7,4,8],
+  [8,4,7,7,7,7,7,7,7,7,7,7,7,7,4,8],
+  [8,4,4,4,4,4,4,4,4,4,4,4,4,4,4,8],
+  [8,4,4,4,4,4,4,4,4,4,4,4,4,4,4,8],
+  [8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8]
+];
+
+const SPR_COIN = [
+  [0,0,8,8,8,8,0,0],
+  [0,8,10,10,10,10,8,0],
+  [8,10,8,10,10,8,10,8],
+  [8,10,8,10,10,8,10,8],
+  [8,10,8,10,10,8,10,8],
+  [8,10,10,10,10,10,10,8],
+  [0,8,10,10,10,10,8,0],
+  [0,0,8,8,8,8,0,0]
+];
+
+const SPR_COMP = [
+  [0,0,0,0,6,6,6,6,6,6,6,6,0,0,0,0],
+  [0,0,0,6,11,11,11,11,11,11,6,0,0,0],
+  [0,0,0,6,11,6,6,6,6,6,11,6,0,0,0],
+  [0,0,0,6,11,6,9,6,6,6,11,6,0,0,0],
+  [0,0,0,6,11,6,9,9,6,6,11,6,0,0,0],
+  [0,0,0,6,11,6,6,6,6,6,11,6,0,0,0],
+  [0,0,0,6,11,11,11,11,11,11,6,0,0,0],
+  [0,0,0,0,6,6,6,6,6,6,6,6,0,0,0,0],
+  [0,0,0,0,0,0,11,11,11,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,11,11,11,0,0,0,0,0,0,0],
+  [0,0,0,0,6,6,6,6,6,6,6,0,0,0,0,0],
+  [0,0,0,6,11,11,11,11,11,11,6,0,0,0],
+  [0,0,0,6,6,6,6,6,6,6,6,6,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+];
+
+const SCALE = 4;
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize() {
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W; canvas.height = H;
+  ctx.imageSmoothingEnabled = false;
+}
+window.addEventListener('resize', resize);
+resize();
+
+function drawSprite(ctx, spr, wx, wy, palOvr, flip, scl = SCALE) {
+  const size = spr.length;
+  // Outline pass for visibility
+  ctx.fillStyle = '#0f172a';
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (!spr[r] || spr[r][flip ? size-1-c : c] === undefined) continue;
+      let p = spr[r][flip ? size-1-c : c];
+      if (p !== 0) {
+        ctx.fillRect(wx + c*scl - scl, wy + r*scl, scl, scl);
+        ctx.fillRect(wx + c*scl + scl, wy + r*scl, scl, scl);
+        ctx.fillRect(wx + c*scl, wy + r*scl - scl, scl, scl);
+        ctx.fillRect(wx + c*scl, wy + r*scl + scl, scl, scl);
       }
-      ca.innerHTML = '';
-      
-      const fb = document.createElement('div');
-      fb.style.cssText = `padding:22px;font-size:12px;line-height:1.8;color:${c.ok?'#50fa7b':'#ff5555'}; text-shadow: 1px 1px 0 #000;`;
-<!-- ... existing code ... -->
-```
-
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-const MG_DEFS = {
-  budget:   {title:'★ САРЫН ТӨСӨВ',    sub:'МӨНГӨӨ ЗӨВ ХУВААРИЛ'},
-  shopping: {title:'★ ДЭЛГҮҮР',        sub:'КАРТААРАА ТООЦОО ХИЙ'},
-  gyalsbank:{title:'★ ГЯЛС БАНК',        sub:'МОБАЙЛ БАНКИНГИЙН ДААЛГАВАР'},
-  phishing: {title:'★ КИБЕР АЮУЛГҮЙ',   sub:'ФИШИНГ ХАЛДЛАГААС ХАМГААЛАГД'},
-  compare:  {title:'★ БАНКНЫ ХАРЬЦУУЛАЛТ',sub:'ТӨРИЙН БАНК VS REVOLUT'},
-  currency: {title:'★ ВАЛЮТ АРИЛЖАА',   sub:'ТӨГРӨГӨӨ ЕВРО БОЛГО'},
-  invest:   {title:'★ ХӨРӨНГӨ ОРУУЛАЛТ',sub:'ЭРСДЭЛ, ӨГӨӨЖИЙГ СОНГО'},
-  loan:     {title:'★ ЗЭЭЛИЙН ТООЦОО',  sub:'САРЫН ТӨЛБӨРӨӨ ТООЦ'},
-  work:     {title:'★ ЦАГИЙН АЖИЛ',     sub:'10 СЕКУНДЭД ХУРДАН ДАРЖ МӨНГӨ ОЛ!'},
-};
-
-function openMG(id, npc) {
-  GS.activeNPC = npc;
-  const def = MG_DEFS[id];
-  document.getElementById('mg-title').textContent = def.title;
-<!-- ... existing code ... -->
-```
-
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-  window.submitBG=()=>{
-    if(done)return;
-    const tot=Object.values(v).reduce((a,b)=>a+b,0);
-    if(tot>INC){ triggerShake(15); toast('ЗАРЛАГА ХЭТЭРЛЭЭ!'); return; }
-    done=true; const sp=Math.round(v.save/INC*100);
-    if(GS.activeNPC) GS.activeNPC.completed = true;
-    earnPts(sp>=15?50:sp>=5?35:20,'САРЫН ТӨСӨВ'); triggerShake(12);
-    document.getElementById('bg-res').className='px-result ok'; 
-    document.getElementById('bg-res').textContent=`★ ${sp}% ХАДГАЛЛАА! ${sp>=15?'МАШ САЙН!':'15%+ ЗОРЬОРООЙ.'}`;
-<!-- ... existing code ... -->
-```
-
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-  window.shPay=()=>{
-    if(paid || sel.size===0) return; 
-    let t=0; sel.forEach(i=>t+=items[i].p);
-    if(t > GS.balance) { toast('ҮЛДЭГДЭЛ ХҮРЭЛЦЭХГҮЙ!'); triggerShake(15); return; }
-    paid=true;
-    if(GS.activeNPC) GS.activeNPC.completed = true;
-    earnMoney(-t, ''); earnPts(30,'КАРТААР ТООЦОО'); triggerShake(10);
-    document.getElementById('sh-res').className='px-result ok';
-<!-- ... existing code ... -->
-```
-
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-    window.checkGbDone = () => {
-        clicks++;
-        if(clicks>=2) {
-            if(GS.activeNPC) GS.activeNPC.completed = true;
-            document.getElementById('gb-res').className='px-result ok';
-            document.getElementById('gb-res').textContent='★ АППААР АМЖИЛТТАЙ ГҮЙЛГЭЭ ХИЙЛЭЭ!';
-            setTimeout(closeMG,2500);
-        }
     }
-<!-- ... existing code ... -->
-```
-
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-    <div id="ph-res"></div>
-  `;
-  let done=false;
-  window.phAns=(isOk)=>{
-      if(done)return; done=true; triggerShake(isOk?10:25);
-      if(GS.activeNPC) GS.activeNPC.completed = true;
-      if(isOk) { earnPts(50,'ФИШИНГ ТАНИЛАА'); earnMoney(10000, 'АЮУЛГҮЙ БАЙДАЛ'); }
-      else { earnPts(-25, 'ФИШИНГТ ӨРТЛӨӨ'); }
-      const res=document.getElementById('ph-res'); res.className='px-result '+(isOk?'ok':'ng');
-      res.textContent=isOk?'✓ ЗӨВ! ЭНЭ БОЛ ЗАЛИЛАН!':'⚠ БУРУУ! ТА ХАКЕРТ МЭДЭЭЛЛЭЭ АЛДЛАА!';
-      setTimeout(closeMG,2500);
+  }
+  // Color pass
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (!spr[r] || spr[r][flip ? size-1-c : c] === undefined) continue;
+      let pidx = spr[r][flip ? size-1-c : c];
+      if (pidx === 0) continue;
+      const rgba = (palOvr && palOvr[pidx]) ? palOvr[pidx] : PAL[pidx];
+      ctx.fillStyle = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},${rgba[3]/255})`;
+      ctx.fillRect(wx + c*scl, wy + r*scl, scl, scl);
+    }
   }
 }
-<!-- ... existing code ... -->
-```
 
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-    <div id="cm-res"></div>
-    `;
-    let done=false;
-    window.cmAns=(isOk)=>{
-        if(done)return; done=true; triggerShake(12);
-        if(GS.activeNPC) GS.activeNPC.completed = true;
-        if(isOk) earnPts(50,'УХААЛАГ СОНГОЛТ'); else earnPts(-20, 'БУРУУ СОНГОЛТ');
-        document.getElementById('cm-res').className='px-result '+(isOk?'ok':'ng');
-        document.getElementById('cm-res').textContent=isOk?'★ ЗӨВ! ДОТООДДОО ТӨРИЙН БАНК, ГАДААДАД ФИНТЕК ХОСЛУУЛАХ НЬ ШИЛДЭГ.':'★ ХОЁУЛАНГ НЬ ЗОРИУЛАЛТААР НЬ ХОСЛУУЛАХ НЬ ИЛҮҮ АШИГТАЙ.';
-        setTimeout(closeMG,3000);
+const AV_PALS = [
+  null,
+  { 3: PAL[10], 4: PAL[6] }, // Red
+  { 3: PAL[9], 4: PAL[5] },  // Green
+  { 3: PAL[12], 4: PAL[7] }  // Purple
+];
+function getPal(idx) { return AV_PALS[idx] ? {...AV_PALS[idx]} : {}; }
+
+function initPreviews() {
+  for(let i=0; i<4; i++) {
+    const c = document.getElementById(`av${i}`);
+    c.width=56; c.height=56;
+    const cx = c.getContext('2d');
+    drawSprite(cx, SPR_PLAYER_IDLE, 12, 8, getPal(i), false, 2);
+  }
+}
+
+const GS = {
+  name: 'ТОГЛОГЧ', av: 0, balance: 500000, pts: 0,
+  lvl: 0, phase: 'title', done: new Set()
+};
+
+const inp = { l: false, r: false, jump: false };
+const plr = { wx: 80, y: 0, vy: 0, isJumping: false, spd: 4, facing: 1, frame: 0, timer: 0 };
+let camX = 0, screenShake = 0;
+
+let parts = [];
+function addParts(x, y, color, amt=10, isBurst=true) {
+  for(let i=0; i<amt; i++) {
+    parts.push({
+      x, y, vx: (Math.random()-0.5)* (isBurst?6:2), vy: (Math.random()-0.5)*(isBurst?6:2) - (isBurst?2:0),
+      life: 30 + Math.random()*20, col: color
+    });
+  }
+}
+function updateParts() {
+  parts = parts.filter(p => {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life--;
+    if(p.life>0) {
+      ctx.fillStyle = p.col;
+      ctx.globalAlpha = p.life/50;
+      ctx.fillRect(Math.round(p.x), Math.round(p.y), SCALE, SCALE);
     }
+    return p.life>0;
+  });
+  ctx.globalAlpha = 1;
 }
-<!-- ... existing code ... -->
-```
 
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-  window.doEU=()=>{
-    if(done)return; 
-    const e=+document.getElementById('eu-in').value||0;
-    const t = Math.round(e*rate*1.015+5000);
-    if(t > GS.balance) { toast('ҮЛДЭГДЭЛ ХҮРЭЛЦЭХГҮЙ!'); triggerShake(15); return; }
-    done=true; 
-    if(GS.activeNPC) GS.activeNPC.completed = true;
-    earnMoney(-t, ''); earnPts(40,'ВАЛЮТ'); triggerShake(12);
-    document.getElementById('eu-res').className='px-result ok'; document.getElementById('eu-res').textContent=`✓ АМЖИЛТТАЙ!`;
-    setTimeout(closeMG,2000);
-  };
+let fTexts = [];
+function addFText(tx, x, y, col) {
+  fTexts.push({tx, x, y, life: 60, col});
 }
-<!-- ... existing code ... -->
-```
 
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-    <div id="inv-res"></div>
-    `;
-    let done=false;
-    window.invAns=(isOk, r)=>{
-        if(done)return; done=true; triggerShake(isOk?12:25);
-        if(GS.activeNPC) GS.activeNPC.completed = true;
-        if(isOk) { earnPts(40,'ХӨРӨНГӨ ОРУУЛАЛТ'); earnMoney(25000, 'ӨГӨӨЖ'); }
-        else { earnPts(-20, 'ЭРСДЭЛТЭЙ СОНГОЛТ'); }
-        document.getElementById('inv-res').className='px-result '+(isOk?'ok':'ng');
-        document.getElementById('inv-res').textContent=isOk?`★ САЙН БАЙНА! ${r}% ӨГӨӨЖТЭЙГЭЭР ӨСНӨ.`:`⚠ ӨНДӨР ЭРСДЭЛТЭЙ СОНГОЛТ ХИЙЛЭЭ.`;
-        setTimeout(closeMG,2500);
+function getFloorY() { return Math.floor(H * 0.75); }
+
+const LEVELS = [
+  {
+    name: 'ҮЕ 1: СУУРЬ МЭДЛЭГ', w: 1800, bg1: '#0f172a', bg2: '#1e293b',
+    npcs: [
+      { wx: 350, p: {3:PAL[10]}, n: 'МЕНЕЖЕР', id: 'l1n1',
+        quiz: {
+          q: 'Банкны орлогын үндсэн эх үүсвэр (Цэвэр хүүгийн маржин) юунаас бүрддэг вэ?',
+          opts: [
+            {t:'Зээлийн хүүгийн орлого болон хадгаламжийн хүүгийн зардлын зөрүү', ok:true},
+            {t:'Зөвхөн данс нээлгэх болон гүйлгээний хураамж', ok:false}
+          ],
+          ok: 'Маш сайн! Энэхүү зөрүүг Net Interest Margin (NIM) гэж нэрлэдэг бөгөөд банкны гол ашиг юм.',
+          ng: 'Буруу. Хураамж нь орлого мөн боловч үндсэн эх үүсвэр нь хүүгийн зөрүү юм.'
+        }
+      },
+      { wx: 800, p: {3:PAL[8]}, n: 'ЗЭЭЛИЙН ХОРОО', id: 'l1n2',
+        quiz: {
+          q: 'Зээл олгох шийдвэр гаргахад банк ямар шалгуурыг (5C зарчим) хамгийн түрүүнд хардаг вэ?',
+          opts: [
+            {t:'Зээлдэгчийн хөрөнгө, орлого, зээлийн түүх, барьцаа', ok:true},
+            {t:'Зөвхөн тухайн хүний банкны үлдэгдэл болон танил тал', ok:false}
+          ],
+          ok: 'Зөв! Capacity (Орлого), Character (Түүх), Collateral (Барьцаа) зэрэг 5C зарчмыг баримталдаг.',
+          ng: 'Буруу. Банк үнэн зөв санхүүгийн үзүүлэлт болон зээлийн түүхийг цогцоор нь хардаг.'
+        }
+      }
+    ],
+    coins: [{wx: 500, y: -60}, {wx: 540, y: -80}, {wx: 580, y: -60}, {wx: 1000, y: -70}],
+    deco: [{wx: 120, spr: SPR_COMP, isComp: true}, {wx: 200, spr: SPR_ATM}, {wx: 650, spr: SPR_PLANT}, {wx: 1100, spr: SPR_PLANT}, {wx: 1600, spr: SPR_DOOR}]
+  },
+  {
+    name: 'ҮЕ 2: ДИЖИТАЛ БАНК', w: 1800, bg1: '#020617', bg2: '#0f172a',
+    npcs: [
+      { wx: 400, p: {3:PAL[12]}, n: 'АРХИТЕКТОР', id: 'l2n1',
+        quiz: {
+          q: 'Мобайл банкаар гүйлгээ хийх үед ард талд (backend) процесс хэрхэн явагддаг вэ?',
+          opts: [
+            {t:'API-аар дамжин Core системд хүрч, автоматаар шилждэг', ok:true},
+            {t:'Ажилтан программ дээрх мэдээллийг харж байгаад гараар шилжүүлдэг', ok:false}
+          ],
+          ok: 'Зөв! API (Application Programming Interface) нь системүүдийг бодит хугацаанд холбодог гүүр юм.',
+          ng: 'Буруу. Дижитал банк нь хүний оролцоогүйгээр 100% автоматаар ажилладаг.'
+        }
+      },
+      { wx: 900, p: {3:PAL[8]}, n: 'ДАТА ОРУУЛАХ', id: 'l2n2',
+        dlg: [{s:'МЭРГЭЖИЛТЭН', t:'Системд мэдээлэл оруулах шаардлагатай байна! Хурдан шивбэл цалинтай шүү.'}], mg: 'work'
+      }
+    ],
+    coins: [{wx: 300, y: -100}, {wx: 700, y: -90}, {wx: 1200, y: -110}],
+    deco: [{wx: 200, spr: SPR_ATM}, {wx: 800, spr: SPR_ATM}, {wx: 1600, spr: SPR_DOOR}]
+  },
+  {
+    name: 'ҮЕ 3: ОЛОН УЛС', w: 1800, bg1: '#171717', bg2: '#262626',
+    npcs: [
+      { wx: 500, p: {3:PAL[8]}, n: 'АНАЛИСТ', id: 'l3n1',
+        quiz: {
+          q: 'АНУ-ын банкууд болон Монголын банкуудын хадгаламжийн хүүний гол ялгаа?',
+          opts: [
+            {t:'АНУ-д инфляци бага тул хадгаламжийн хүү Монголоос хамаагүй бага', ok:true},
+            {t:'АНУ-ын эдийн засаг том тул хадгаламжийн хүү 20% хүрдэг', ok:false}
+          ],
+          ok: 'Зөв! Хүүгийн түвшин нь тухайн улсын макро эдийн засаг, инфляциас шууд хамаарна.',
+          ng: 'Буруу. Хөгжингүй орнуудад инфляци бага байдаг тул хадгаламжийн хүү ч бага байдаг.'
+        }
+      },
+      { wx: 1000, p: {3:PAL[10]}, n: 'ГАДААД ТООЦОО', id: 'l3n2',
+        quiz: {
+          q: 'Монголоос АНУ руу ам.доллар шилжүүлэхэд ямар сүлжээ ашигладаг вэ?',
+          opts: [
+            {t:'SWIFT сүлжээгээр дамжин Корреспондент банкуудын харилцах дансаар хийгдэнэ', ok:true},
+            {t:'Зөвхөн Монголбанкны дотоодын АХА систем', ok:false}
+          ],
+          ok: 'Маш сайн! SWIFT нь дэлхийн банкуудыг холбодог аюулгүй мессежийн сүлжээ юм.',
+          ng: 'Буруу. АХА (ACH) нь зөвхөн дотоодын гүйлгээнд ашиглагддаг систем юм.'
+        }
+      },
+      { wx: 1400, p: {3:PAL[9]}, n: 'ТӨГСГӨЛ', id: 'l3n3',
+        dlg: [{s:'СИСТЕМ', t:'Баяр хүргэе! Та банкны менежментийн аяллаа амжилттай дуусгалаа.'}], trigger: 'end'
+      }
+    ],
+    coins: [{wx: 400, y: -80}, {wx: 800, y: -100}, {wx: 1200, y: -90}],
+    deco: [{wx: 300, spr: SPR_PLANT}, {wx: 1100, spr: SPR_PLANT}, {wx: 1600, spr: SPR_DOOR}]
+  }
+];
+
+let activeLvl = LEVELS[0];
+let floatT = 0;
+
+function render() {
+  if(GS.phase === 'title' || GS.phase === 'map') return;
+  
+  if(GS.phase === 'playing') {
+    // Тоглогчийн хөдөлгөөн
+    if(inp.l) { plr.wx -= plr.spd; plr.facing = -1; }
+    if(inp.r) { plr.wx += plr.spd; plr.facing = 1; }
+    plr.wx = Math.max(20, Math.min(activeLvl.w - 20, plr.wx));
+
+    // Үсрэх физик (Gravity)
+    if(inp.jump && !plr.isJumping) {
+      plr.vy = -7.5; plr.isJumping = true;
     }
+    plr.y += plr.vy;
+    plr.vy += 0.4; // Татах хүч
+    if(plr.y >= 0) { plr.y = 0; plr.vy = 0; plr.isJumping = false; }
+    
+    // Камер хөдөлгөөн
+    camX = plr.wx - W/2;
+    camX = Math.max(0, Math.min(activeLvl.w - W, camX));
+  }
+
+  floatT += 0.05;
+  const FY = getFloorY();
+  const CEIL_Y = Math.floor(H * 0.25);
+  
+  if (screenShake > 0) {
+    ctx.save();
+    ctx.translate((Math.random()-0.5)*screenShake, (Math.random()-0.5)*screenShake);
+    screenShake--;
+  } else { ctx.save(); }
+
+  // Тааз & Арын дэвсгэр
+  ctx.fillStyle = activeLvl.bg1; ctx.fillRect(0,0,W,CEIL_Y);
+  
+  for(let lx = 80; lx < W + camX%160; lx+=160) {
+    const sx = lx - (camX%160);
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.2)';
+    ctx.fillRect(sx - 20, CEIL_Y - 4, 40, 6);
+    ctx.beginPath(); ctx.moveTo(sx-20, CEIL_Y+2); ctx.lineTo(sx-60, FY); ctx.lineTo(sx+60, FY); ctx.lineTo(sx+20, CEIL_Y+2);
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.03)'; ctx.fill();
+  }
+
+  // Хана
+  ctx.fillStyle = activeLvl.bg2; ctx.fillRect(0, CEIL_Y, W, FY-CEIL_Y);
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 2;
+  const tileScl = 80;
+  for(let ty = CEIL_Y; ty < FY; ty += tileScl) {
+    for(let tx = -(camX%tileScl) - tileScl; tx < W+tileScl; tx+=tileScl) {
+      ctx.strokeRect(tx, ty, tileScl, tileScl);
+    }
+  }
+
+  // Шал
+  ctx.fillStyle = '#0f172a'; ctx.fillRect(0, FY, W, H-FY);
+  ctx.fillStyle = '#1e293b'; ctx.fillRect(0, FY, W, 4);
+  ctx.strokeStyle = '#334155'; ctx.lineWidth=2;
+  const offX = -camX % 60;
+  for(let x=offX-60; x<W+100; x+=60) {
+    ctx.beginPath(); ctx.moveTo(x, FY); ctx.lineTo(x-100, H); ctx.stroke();
+  }
+
+  // Чимэглэлүүд зурах
+  if(activeLvl.deco) {
+    activeLvl.deco.forEach(d => {
+      const cx = d.wx - camX;
+      if(cx > -100 && cx < W+100) {
+        drawSprite(ctx, d.spr, cx - 32, FY - 16*SCALE, null, false);
+        
+        if (d.spr === SPR_DOOR) {
+          const dist = Math.abs(plr.wx - d.wx);
+          if (dist < 60 && plr.y > -20) {
+            const bob = Math.sin(floatT*2)*2;
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.9)'; ctx.fillRect(cx - 24, FY - 80 + bob, 48, 16);
+            ctx.fillStyle = '#fbbf24'; ctx.font = "8px 'Press Start 2P', monospace";
+            ctx.fillText("ОРОХ", cx - 14, FY - 69 + bob);
+          }
+        }
+        
+        if (d.isComp) {
+          const dist = Math.abs(plr.wx - d.wx);
+          if (dist < 60 && plr.y > -20) {
+            const bob = Math.sin(floatT*2)*2;
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.9)'; ctx.fillRect(cx - 36, FY - 80 + bob, 72, 16);
+            ctx.fillStyle = '#4ade80'; ctx.font = "8px 'Press Start 2P', monospace";
+            ctx.fillText("ТЕРМИНАЛ", cx - 28, FY - 69 + bob);
+          }
+        }
+      }
+    });
+  }
+
+  // Зооснууд
+  activeLvl.coins.forEach(c => {
+    if(c.collected) return;
+    const cx = c.wx - camX;
+    if(cx > -50 && cx < W+50) {
+      const cy = FY + c.y + Math.sin(floatT+c.wx)*5;
+      drawSprite(ctx, SPR_COIN, cx-16, cy, null, false, 3);
+      if(Math.abs(plr.wx - c.wx)<30 && Math.abs(plr.y - c.y)<30) {
+        c.collected = true;
+        addParts(c.wx - camX, cy, '#fbbf24', 15);
+        addFText('+₮1,500', c.wx, FY + c.y, '#fbbf24');
+        earnPts(10, 'ЗООС');
+        GS.balance += 1500; updateHUD();
+      }
+    }
+  });
+
+  // NPC дүрүүд
+  activeLvl.npcs.forEach((n, ni) => {
+    const nx = n.wx - camX;
+    if(nx > -100 && nx < W+100) {
+      const bob = Math.sin(floatT*2 + ni)*2;
+      const ny = FY - 16*SCALE;
+      
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.beginPath(); ctx.ellipse(nx, FY, 16, 4, 0, 0, Math.PI*2); ctx.fill();
+
+      drawSprite(ctx, SPR_PLAYER_IDLE, nx - 8*SCALE, ny + bob, n.p, false);
+      
+      if(!GS.done.has(n.id)) {
+        const dist = Math.abs(plr.wx - n.wx);
+        if(dist < 80) {
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.9)'; ctx.fillRect(nx - 24, ny - 30 + bob, 48, 16);
+          ctx.fillStyle = '#fbbf24'; ctx.font = "8px 'Press Start 2P', monospace";
+          ctx.fillText("ЯРИХ", nx - 16, ny - 20 + bob);
+        } else {
+          ctx.fillStyle = '#fbbf24'; ctx.font = "10px 'Press Start 2P', monospace";
+          ctx.fillText('▼', nx-5, ny-15 + bob);
+        }
+      }
+    }
+  });
+
+  // Тоглогч зурах
+  const px = plr.wx - camX;
+  const py = FY - 16*SCALE + plr.y;
+  
+  ctx.fillStyle = `rgba(0,0,0,${Math.max(0.1, 0.4 + plr.y/200)})`;
+  ctx.beginPath(); ctx.ellipse(px, FY, 16 + plr.y/10, 4 + plr.y/20, 0, 0, Math.PI*2); ctx.fill();
+
+  plr.timer++;
+  if(plr.timer > 8) { plr.timer = 0; plr.frame = (plr.frame + 1) % 4; }
+  const isWalk = inp.l || inp.r;
+  let pSpr = SPR_PLAYER_IDLE;
+  if(plr.isJumping) pSpr = SPR_PLAYER_W1;
+  else if(isWalk) pSpr = [SPR_PLAYER_W1, SPR_PLAYER_IDLE, SPR_PLAYER_W2, SPR_PLAYER_IDLE][plr.frame];
+  
+  drawSprite(ctx, pSpr, px - 8*SCALE, py, getPal(GS.av), plr.facing === -1);
+
+  // Партикл болон текстүүд
+  updateParts();
+  fTexts = fTexts.filter(t => {
+    t.y -= 1; t.life--;
+    ctx.fillStyle = t.col; ctx.globalAlpha = t.life/60;
+    ctx.font = "8px 'Press Start 2P', monospace";
+    ctx.fillText(t.tx, t.x - camX - 10, t.y);
+    return t.life > 0;
+  });
+  ctx.globalAlpha = 1;
+
+  ctx.restore();
 }
-<!-- ... existing code ... -->
-```
 
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-  window.calcLN(); let done=false;
-  window.applyLN=()=>{
-    if(done)return; done=true; earnPts(50,'ЗЭЭЛ'); triggerShake(12);
-    if(GS.activeNPC) GS.activeNPC.completed = true;
-    document.getElementById('ln-fb').className='px-result ok'; document.getElementById('ln-fb').textContent='★ ӨРГӨДӨЛ ИЛГЭЭГДЛЭЭ!';
-    setTimeout(closeMG,2000);
-  };
+let npcCool = 0;
+function interact() {
+  if(GS.phase === 'dlg') { advDlg(); return; }
+  if(GS.phase !== 'playing' || Date.now() < npcCool) return;
+  
+  const comp = activeLvl.deco.find(d => d.isComp && Math.abs(d.wx - plr.wx) < 60 && plr.y > -20);
+  if(comp) { npcCool = Date.now() + 500; openComputer(); return; }
+
+  const hit = activeLvl.npcs.find(n => Math.abs(n.wx - plr.wx) < 60 && plr.y > -20);
+  if(hit) {
+    npcCool = Date.now() + 500;
+    if(GS.done.has(hit.id)) { toast('🔒 ТА ЭНЭ ДААЛГАВРЫГ ХИЙЖ ДУУСГАСАН БАЙНА.'); return; }
+    if(hit.trigger === 'end') { doEnd(); return; }
+    if(hit.mg) { openMG(hit.mg, hit); return; }
+    if(hit.quiz) { doQuiz(hit.quiz, hit); return; }
+    if(hit.dlg) { startDlg(hit.dlg, hit, ()=>{ GS.done.add(hit.id); renderMap(); }); return; }
+  }
+
+  const door = activeLvl.deco.find(d => d.spr === SPR_DOOR && Math.abs(d.wx - plr.wx) < 60 && plr.y > -20);
+  if(door) {
+    npcCool = Date.now() + 500;
+    let allDone = true;
+    activeLvl.npcs.forEach(n => { if(!GS.done.has(n.id) && n.trigger !== 'end') allDone = false; });
+    if(!allDone) {
+      toast('⚠️ ЭХЛЭЭД ЭНДХИЙН БҮХ ДААЛГАВРЫГ ДУУСГАНА УУ!');
+    } else {
+      if(GS.lvl < LEVELS.length - 1) showLevelTransition(GS.lvl + 1);
+      else doEnd();
+    }
+    return;
+  }
 }
-<!-- ... existing code ... -->
-```
 
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-            wkIv = setInterval(() => {
-                wkT -= 0.1;
-                if(wkT <= 0) {
-                    wkT = 0; wkActive = false; clearInterval(wkIv);
-                    if(GS.activeNPC) GS.activeNPC.completed = true;
-                    document.getElementById('wk-time').textContent = '0.0s';
-                    document.getElementById('wk-btn').disabled = true;
-                    earnMoney(wkEarn, ''); triggerShake(15); earnPts(30, 'АЖИЛ');
-                    setTimeout(closeMG, 2500);
-                } else {
-<!-- ... existing code ... -->
-```
-
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-function fmt(n) { return new Intl.NumberFormat('mn-MN').format(n); }
-function earnPts(n, label) { 
-    GS.pts = Math.max(0, GS.pts + n); updateHUD(); 
-    if(label) toast(`${n>0?'+':''}${n} ★ ${label}`); 
-    const ptsEl = document.getElementById('h-pts');
-    ptsEl.style.transform = 'scale(1.8)'; ptsEl.style.color = n > 0 ? '#fff' : '#ff5555';
-    setTimeout(()=> { ptsEl.style.transform = 'scale(1)'; ptsEl.style.color = '#FFD700'; }, 300);
+function openComputer() {
+  GS.phase = 'mg';
+  document.getElementById('mg-sheet').classList.add('open');
+  document.getElementById('mg-title').textContent = 'СИСТЕМИЙН ТЕРМИНАЛ';
+  document.getElementById('mg-sub').textContent = 'Банкны Менежментийн Мэдээллийн Бааз';
+  
+  const b = document.getElementById('mg-body');
+  b.innerHTML = `
+    <div class="card" style="margin-bottom:16px">
+      <div class="lbl" style="color:var(--green)">🏛 БАНКНЫ ҮНДСЭН ҮЙЛ АЖИЛЛАГАА</div>
+      <div style="font-size:9px;color:var(--text);line-height:1.6">
+        Арилжааны банк нь иргэд, байгууллагаас сул чөлөөтэй байгаа мөнгөн хөрөнгийг татан төвлөрүүлж (Пассив), түүнийгээ хэрэгцээтэй байгаа этгээдэд зээл хэлбэрээр олгох (Актив) үйл ажиллагааг эрхэлдэг санхүүгийн зуучлагч юм.
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="lbl" style="color:var(--accent)">💰 ОРЛОГЫН ЭХ ҮҮСВЭР (NIM)</div>
+      <div style="font-size:9px;color:var(--text);line-height:1.6">
+        Банкны гол ашиг нь олгосон зээлийн хүүгийн орлого болон татсан хадгаламжийн хүүгийн зардлын зөрүү буюу <b>Цэвэр хүүгийн маржин (Net Interest Margin)</b>-аас бүрддэг.
+      </div>
+    </div>
+    <div class="card">
+      <div class="lbl" style="color:var(--gold)">📱 ДИЖИТАЛ ШИЛЖИЛТ & ОЛОН УЛС</div>
+      <div style="font-size:9px;color:var(--text);line-height:1.6">
+        Орчин үед банк нь API-д суурилсан нээлттэй банк (Open Banking), SWIFT сүлжээгээр дамжих олон улсын төлбөр тооцоо, гар утасны апп зэргээр үйл ажиллагаагаа автоматжуулж байна.
+      </div>
+    </div>
+  `;
 }
-function earnMoney(amt, label, px, py) {
-<!-- ... existing code ... -->
-```
 
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-function showFinalComplete() {
-  GS.done.add(GS.lvl); GS.phase = 'lc';
-  saveScore();
-  document.getElementById('lc-em').textContent = '🏆';
-  document.getElementById('lc-h').textContent = 'БАЯР ХҮРГЭЕ!';
-<!-- ... existing code ... -->
-```
+function showLevelTransition(nextLvlIdx) {
+  GS.phase = 'transition';
+  GS.done.add('lvl_' + (nextLvlIdx-1));
+  
+  const info = [
+    "БАНКНЫ ПАССИВ УДИРДЛАГА:\n\nБанкууд хадгаламж татахын тулд хүүгийн зардлаа хамгийн бага түвшинд барихыг зорьдог.",
+    "ДИЖИТАЛ АРХИТЕКТУР:\n\nНээлттэй банк (Open Banking) нь API ашиглан финтек компаниудтай мэдээлэл солилцож, процессыг бүрэн автоматжуулдаг.",
+    "ОЛОН УЛСЫН ТООЦОО:\n\nSWIFT сүлжээ нь мөнгө дамжуулдаггүй, харин гүйлгээний баталгаат мессежийг корреспондент банкуудын хооронд илгээдэг."
+  ];
+  
+  const d = document.getElementById('mg-sheet');
+  document.getElementById('mg-title').textContent = `ҮЕ ${nextLvlIdx + 1} РҮҮ ШИЛЖИХ`;
+  document.getElementById('mg-sub').textContent = 'МЭДЛЭГИЙН САН';
+  
+  const b = document.getElementById('mg-body');
+  b.innerHTML = `
+    <div class="card" style="text-align:left;margin-bottom:20px;white-space:pre-wrap;line-height:1.8;color:var(--text)">
+      <div class="lbl" style="text-align:center;margin-bottom:16px;color:var(--accent)">💡 ЧУХАЛ ОЙЛГОЛТ</div>
+      ${info[nextLvlIdx-1] || "Үргэлжлүүлэн суралцацгаая!"}
+    </div>
+    <button class="btn gold" onclick="loadLvl(${nextLvlIdx})">ОРОХ ▶</button>
+  `;
+  d.classList.add('open');
+}
 
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-function restartGame() {
-  GS.balance = 500000; GS.pts = 0; GS.done.clear();
-  LEVELS.forEach(lv => lv.npcs.forEach(n => n.completed = false));
-  document.getElementById('lc').style.display = 'none'; updateHUD(); loadLevel(0);
+let curNPC = null;
+function openMG(id, npc) {
+  curNPC = npc; GS.phase = 'mg';
+  document.getElementById('mg-sheet').classList.add('open');
+  const b = document.getElementById('mg-body');
+  
+  if(id === 'work') {
+    document.getElementById('mg-title').textContent = 'СИСТЕМД ӨГӨГДӨЛ ОРУУЛАХ';
+    document.getElementById('mg-sub').textContent = 'FREELANCE АЖИЛ';
+    b.innerHTML = `
+      <div class="card" style="text-align:center">
+        <div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">ЦАГ: <span id="fw-time" style="color:var(--red)">10</span>с</div>
+        <div style="font-size:16px;color:var(--gold)">ШИВСЭН ӨГӨГДӨЛ: <span id="fw-score">0</span></div>
+      </div>
+      <button class="btn gold" id="fw-btn" style="height:80px;font-size:14px">💻 ЭНД ХУРДАН ДАР!</button>
+      <div class="res-box" id="fw-res"></div>
+    `;
+    let sc=0, t=10, iv=null, run=false;
+    const btn = document.getElementById('fw-btn');
+    btn.onclick = () => {
+      if(t<=0) return;
+      if(!run) {
+        run=true;
+        iv = setInterval(()=>{
+          t--; document.getElementById('fw-time').textContent=t;
+          if(t<=0){
+            clearInterval(iv); btn.disabled=true;
+            const earned = sc * 1500;
+            GS.balance += earned; earnPts(Math.floor(sc/2), 'АЖИЛЛАВ'); updateHUD();
+            addFText('+₮'+fmt(earned), plr.wx, getFloorY()-50, '#4ade80');
+            if(curNPC) GS.done.add(curNPC.id);
+            const r=document.getElementById('fw-res'); r.className='res-box ok';
+            r.textContent='Хугацаа дууслаа!\nТа '+sc+' өгөгдөл шивж ₮'+fmt(earned)+' оллоо!';
+            setTimeout(()=>{document.getElementById('mg-sheet').classList.remove('open'); GS.phase='playing'; renderMap();}, 3000);
+          }
+        }, 1000);
+      }
+      sc++; document.getElementById('fw-score').textContent=sc;
+      btn.style.transform = 'scale('+(0.95 + Math.random()*0.05)+')';
+      setTimeout(()=>btn.style.transform='none', 50);
+    };
+  }
+}
+
+let dQ=[], dIdx=0, dCb=null;
+function startDlg(lines, npc, cb) {
+  GS.phase = 'dlg'; dQ=lines; dIdx=0; dCb=cb;
+  renderDlg();
+}
+function renderDlg() {
+  const c = dQ[dIdx];
+  if(!c) { closeDlg(); if(dCb)dCb(); return; }
+  document.getElementById('dlg-name').textContent = c.s;
+  document.getElementById('dlg-text').textContent = c.t;
+  document.getElementById('dlg-choices').innerHTML='';
+  document.getElementById('dlg-cont').style.display='block';
+  document.getElementById('dlg').classList.add('open');
+}
+function advDlg() { dIdx++; renderDlg(); }
+function closeDlg() { document.getElementById('dlg').classList.remove('open'); GS.phase='playing'; }
+
+function doQuiz(q, npc) {
+  GS.phase = 'dlg';
+  document.getElementById('dlg-name').textContent = '❓ АСУУЛТ';
+  document.getElementById('dlg-text').textContent = q.q;
+  document.getElementById('dlg-cont').style.display='none';
+  const bx = document.getElementById('dlg-choices');
+  bx.innerHTML='';
+  
+  let ans=false;
+  q.opts.forEach(o => {
+    const b = document.createElement('button');
+    b.className = 'dlg-choice'; b.textContent = o.t;
+    b.onclick = () => {
+      if(ans)return; ans=true;
+      b.className = 'dlg-choice ' + (o.ok?'ok':'ng');
+      const r = document.createElement('div');
+      r.style.padding='16px'; r.style.fontSize='9px'; r.style.lineHeight='1.6';
+      
+      if(o.ok) {
+        earnPts(40, 'ЗӨВ ХАРИУЛТ'); GS.balance += 20000; updateHUD();
+        addFText("+₮20,000", plr.wx, getFloorY()-50, '#4ade80');
+        r.style.color = 'var(--green)'; r.textContent = '✓ ' + q.ok + '\n\nШАГНАЛ: +₮20,000';
+        GS.done.add(npc.id);
+      } else {
+        earnPts(-20, 'БУРУУ ХАРИУЛТ'); screenShake = 10;
+        addFText("-20 ОНОО", plr.wx, getFloorY()-50, '#f87171');
+        r.style.color = 'var(--red)'; r.textContent = '✗ ' + q.ng + '\n\nШИЙТГЭЛ: -20 ОНОО';
+        GS.done.add(npc.id);
+      }
+      bx.innerHTML=''; bx.appendChild(r);
+      setTimeout(closeDlg, 3500); renderMap();
+    };
+    bx.appendChild(b);
+  });
+  document.getElementById('dlg').classList.add('open');
+}
+
+document.getElementById('mg-close').onclick = ()=>{ document.getElementById('mg-sheet').classList.remove('open'); GS.phase='playing'; };
+
+function fmt(n) { return new Intl.NumberFormat().format(n); }
+function earnPts(n, m) { 
+  GS.pts += n; updateHUD(); 
+  toast((n>0?'+':'')+n+' ОНОО: '+m); 
+}
+function updateHUD() {
+  document.getElementById('h-bal').textContent = `₮${fmt(GS.balance)}`;
+  document.getElementById('h-pts').textContent = GS.pts;
+  const p = document.getElementById('h-pts');
+  p.style.color = '#fff'; setTimeout(()=>p.style.color='', 200);
+}
+function toast(m) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;top:80px;right:10px;background:rgba(0,0,0,0.8);border:2px solid var(--accent);color:#fff;padding:10px;font-size:8px;border-radius:6px;z-index:200;pointer-events:none;transition:0.3s;';
+  t.textContent = m; document.body.appendChild(t);
+  setTimeout(()=>{ t.style.opacity=0; setTimeout(()=>t.remove(),300); }, 2000);
+}
+
+function doEnd() {
+  GS.phase = 'lb';
+  const lb = [
+    {n: 'АНУЖИН', p: 380}, {n: 'БАТ', p: 250}, {n: 'СУВД', p: 120},
+    {n: GS.name.toUpperCase(), p: GS.pts, me: true}
+  ].sort((a,b)=>b.p - a.p);
+  
+  const d = document.getElementById('mg-sheet');
+  document.getElementById('mg-title').textContent = '🏆 ТОГЛООМ ДУУСЛАА';
+  document.getElementById('mg-sub').textContent = 'ШИЛДЭГ ТОГЛОГЧИД';
+  
+  const b = document.getElementById('mg-body');
+  b.innerHTML = `
+    <div class="card" style="text-align:left;margin-bottom:20px">
+      ${lb.map((x,i)=>`<div class="lb-row ${x.me?'me':''}"><span>${i+1}. ${x.n}</span><span>${x.p} ★</span></div>`).join('')}
+    </div>
+    <button class="btn gold" onclick="location.reload()">ШИНЭЭР ЭХЛЭХ</button>
+  `;
+  d.classList.add('open');
 }
 
 function renderMap() {
-<!-- ... existing code ... -->
-```
-
-```javascript:Bank Quest - Slate Edition:index.html
-<!-- ... existing code ... -->
-window.toggleFullScreen = function() {
-  const isFull = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
-  if (!isFull) requestFullScreen();
-  else {
-    const exitFn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
-    if (exitFn) exitFn.call(document);
-  }
-};
-
-function saveScore() {
-  if(!GS.playerName) return;
-  let scores = JSON.parse(localStorage.getItem('bq_scores') || '[]');
-  const idx = scores.findIndex(s => s.name === GS.playerName);
-  if(idx > -1) { if(GS.pts > scores[idx].pts) scores[idx].pts = GS.pts; }
-  else { scores.push({name: GS.playerName, pts: GS.pts}); }
-  localStorage.setItem('bq_scores', JSON.stringify(scores));
+  const g = document.getElementById('map-grid');
+  g.innerHTML = LEVELS.map((lv, i) => {
+    let done = true;
+    lv.npcs.forEach(n => { if(!GS.done.has(n.id) && n.trigger !== 'end') done = false; });
+    const isLocked = i > 0 && !GS.done.has('lvl_' + (i-1));
+    
+    return `<div class="map-cell ${done?'done':''} ${isLocked?'lock':''}" onclick="${isLocked ? `toast('🔒 ӨМНӨХ ҮЕИЙГ ДУУСГАНА УУ!')` : `loadLvl(${i})`}">
+      <div style="font-size:24px;margin-bottom:6px">${done?'✅':isLocked?'🔒':'📍'}</div>
+      <div style="font-size:10px;color:var(--text);margin-bottom:4px">ҮЕ ${i+1}</div>
+      <div style="font-size:8px;color:var(--text-dim)">${lv.name}</div>
+    </div>`;
+  }).join('');
+}
+function loadLvl(i) {
+  document.getElementById('mg-sheet').classList.remove('open');
+  activeLvl = LEVELS[i]; GS.lvl = i;
+  plr.wx = 80; plr.y = 0; plr.vy = 0; plr.isJumping = false; camX = 0; GS.phase = 'playing';
+  document.getElementById('map-sheet').classList.remove('open');
 }
 
-window.showLeaderboard = function() {
-  const lb = document.getElementById('leaderboard');
-  const list = document.getElementById('lb-list');
-  let scores = JSON.parse(localStorage.getItem('bq_scores') || '[]');
-  
-  const mock = [
-    {name:'Болд (AI)', pts:650}, {name:'Сараа (AI)', pts:520},
-    {name:'Тэмүүлэн (AI)', pts:410}, {name:'Ану (AI)', pts:280}
-  ];
-  
-  let allScores = [...scores, ...mock].sort((a,b) => b.pts - a.pts);
-  allScores = allScores.filter((v,i,a) => a.findIndex(t => t.name === v.name) === i).slice(0, 8);
-  
-  list.innerHTML = `<div class="lb-row hdr"><span># НЭР</span><span>ОНОО</span></div>` + 
-    allScores.map((s, i) => `<div class="lb-row ${s.name === GS.playerName ? 'me' : ''}"><span>${i+1}. ${s.name}</span><span>★ ${s.pts}</span></div>`).join('');
-  
-  lb.style.display = 'flex';
+const bA = document.getElementById('abtn-a');
+const bB = document.getElementById('abtn-b');
+const dL = document.getElementById('dp-l');
+const dR = document.getElementById('dp-r');
+
+bA.addEventListener('touchstart', (e)=>{ e.preventDefault(); interact(); bA.style.transform='scale(0.9)'; }, {passive:false});
+bA.addEventListener('touchend', ()=>{ bA.style.transform=''; }, {passive:true});
+bA.addEventListener('mousedown', (e)=>{ e.preventDefault(); interact(); bA.style.transform='scale(0.9)'; });
+bA.addEventListener('mouseup', ()=>{ bA.style.transform=''; });
+
+bB.addEventListener('touchstart', (e)=>{ e.preventDefault(); inp.jump=true; bB.style.transform='scale(0.9)'; }, {passive:false});
+bB.addEventListener('touchend', ()=>{ inp.jump=false; bB.style.transform=''; }, {passive:true});
+bB.addEventListener('mousedown', (e)=>{ e.preventDefault(); inp.jump=true; bB.style.transform='scale(0.9)'; });
+bB.addEventListener('mouseup', ()=>{ inp.jump=false; bB.style.transform=''; });
+
+dL.addEventListener('touchstart', (e)=>{ e.preventDefault(); inp.l=true; dL.classList.add('on'); }, {passive:false});
+dL.addEventListener('touchend', ()=>{ inp.l=false; dL.classList.remove('on'); }, {passive:true});
+dL.addEventListener('mousedown', (e)=>{ e.preventDefault(); inp.l=true; dL.classList.add('on'); });
+dL.addEventListener('mouseup', ()=>{ inp.l=false; dL.classList.remove('on'); });
+
+dR.addEventListener('touchstart', (e)=>{ e.preventDefault(); inp.r=true; dR.classList.add('on'); }, {passive:false});
+dR.addEventListener('touchend', ()=>{ inp.r=false; dR.classList.remove('on'); }, {passive:true});
+dR.addEventListener('mousedown', (e)=>{ e.preventDefault(); inp.r=true; dR.classList.add('on'); });
+dR.addEventListener('mouseup', ()=>{ inp.r=false; dR.classList.remove('on'); });
+
+document.onkeydown = e => {
+  if(e.key==='a'||e.key==='ArrowLeft') inp.l=true;
+  if(e.key==='d'||e.key==='ArrowRight') inp.r=true;
+  if(e.key==='w'||e.key==='ArrowUp'||e.key===' ') inp.jump=true;
+  if(e.key==='Enter') interact();
+};
+document.onkeyup = e => {
+  if(e.key==='a'||e.key==='ArrowLeft') inp.l=false;
+  if(e.key==='d'||e.key==='ArrowRight') inp.r=false;
+  if(e.key==='w'||e.key==='ArrowUp'||e.key===' ') inp.jump=false;
 };
 
-window.closeLeaderboard = function() {
-  document.getElementById('leaderboard').style.display = 'none';
+window.toggleFS = () => {
+  try {
+    if(!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(()=>{ toast('⚠️ Хөтөч бүтэн дэлгэцийг хориглосон байна. iPhone: Share -> Add to Home Screen хийнэ үү.'); });
+    } else document.exitFullscreen();
+  } catch(e) { toast('📱 iPhone: Add to Home Screen хийнэ үү.'); }
 };
 
-window.startGame = function() {
-  const nm = document.getElementById('p-name').value.trim();
-  if(!nm) { toast('ТОГЛОГЧИЙН НЭРЭЭ ОРУУЛНА УУ!'); document.getElementById('p-name').focus(); return; }
-  GS.playerName = nm;
+window.selAv = (i) => {
+  GS.av = i;
+  document.querySelectorAll('.av-opt').forEach((e,j) => e.className = 'av-opt'+(i===j?' sel':''));
+};
 
-  requestFullScreen();
+window.startGame = () => {
+  const n = document.getElementById('name-inp').value.trim();
+  GS.name = n || 'ТОГЛОГЧ';
+  document.getElementById('title').style.display = 'none';
+  document.getElementById('ctrl').style.display = 'flex';
+  renderMap();
   GS.phase = 'playing';
-<!-- ... existing code ... -->
+  updateHUD();
+};
+
+initPreviews();
+setInterval(()=>requestAnimationFrame(render), 1000/60);
+</script>
+</body>
+</html>
